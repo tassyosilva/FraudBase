@@ -1,4 +1,4 @@
-# FraudBase Project Status
+# FraudBase - STATUS DO PROJETO
 
 ## Current Implementation
 - Login system with PostgreSQL authentication
