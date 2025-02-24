@@ -1,5 +1,69 @@
 # FraudBase - STATUS DO PROJETO
 
+## Implementação Atual
+- Sistema de login com autenticação PostgreSQL
+- Layout do Dashboard com tema escuro MUI
+- Rotas protegidas com armazenamento de sessão
+- Configuração CORS para desenvolvimento local
+- Conexão com banco de dados (192.168.1.106, usuário: postgres, senha: 123456)
+- Navegação entre páginas Dashboard e Configurações
+
+## Componentes Criados
+- SignIn (com validação de formulário e autenticação no banco)
+- Dashboard (com drawer responsivo e ícones dourados)
+- Settings (formulário de registro com campos: login, nome, cpf, matricula, telefone, unidade_policial, email)
+- PrivateRoute (protegendo rotas autenticadas)
+- Layout (layout compartilhado com barra lateral e cabeçalho fixos)
+
+## Estrutura do Banco de Dados
+- Banco: estelionato
+- Tabela: usuarios
+  - Campos: id, login, nome, cpf, matricula, telefone, unidade_policial, email, senha, is_admin
+- Credenciais admin atuais: admin/admin
+
+## Estrutura do Backend
+- Handlers: auth.go (tratamento de login)
+- Repository: user_repository.go (operações no banco)
+- Database: config.go (conexão PostgreSQL)
+- Models: user.go (estrutura do usuário)
+- Main: middleware CORS e configuração de rotas
+
+## Última Implementação
+- Corrigido problemas CORS com método OPTIONS
+- Login implementado com sucesso usando autenticação no banco
+- Página de configurações acessível pelo menu do dashboard
+- Adicionado logs detalhados para depuração
+- Implementado rotas protegidas com armazenamento de sessão
+
+## Próximos Passos
+- Implementar registro de usuário na página Settings
+- Conectar formulário Settings com backend
+- Criar recursos restantes do dashboard (Cadastrar, Consultar, Gráficos)
+- Implementar funcionalidade de logout
+- Adicionar validação de função do usuário (recursos admin)
+
+## Stack Tecnológica
+- Frontend: React + TypeScript + MUI
+- Backend: Go + Gorilla Mux
+- Banco de Dados: PostgreSQL
+- Gerenciamento de Estado: Session Storage
+- Ambiente de Desenvolvimento: Ubuntu Desktop
+
+## Estrutura de Diretórios Atual
+/projeto-go
+  /internal
+    /database
+    /handlers
+    /models
+    /repository
+  /web
+    /frontend
+      /src
+        /components
+        /theme
+
+# FraudBase - PROJECT STATUS
+
 ## Current Implementation
 - Login system with PostgreSQL authentication
 - Dashboard layout with MUI dark theme
@@ -48,6 +112,7 @@
 - Database: PostgreSQL
 - State Management: Session Storage
 - Development Environment: Ubuntu Desktop
+
 ## Current Working Directory Structure
 /projeto-go
   /internal
