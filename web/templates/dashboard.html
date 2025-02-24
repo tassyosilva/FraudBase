@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FraudBase - Dashboard</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, width=device-width" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mui/material@5.15.0/dist/mui-material.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+        .root {
+            display: flex;
+        }
+        .drawer {
+            width: 240px;
+            flex-shrink: 0;
+        }
+        .drawer-paper {
+            width: 240px;
+            box-sizing: border-box;
+        }
+        .app-bar {
+            z-index: 1201;
+        }
+        .toolbar {
+            padding-right: 24px;
+        }
+        .menu-button {
+            margin-right: 36px;
+        }
+        .menu-button-hidden {
+            display: none;
+        }
+        .title {
+            flex-grow: 1;
+        }
+        .content {
+            flex-grow: 1;
+            height: 100vh;
+            overflow: auto;
+            padding: 24px;
+        }
+        .container {
+            padding-top: 64px;
+        }
+    </style>
+</head>
+<body>
+    <div class="root">
+        <!-- AppBar -->
+        <div class="mui-app-bar mui-app-bar--fixed app-bar">
+            <div class="mui-toolbar toolbar">
+                <button class="mui-icon-button menu-button">
+                    <span class="material-icons">menu</span>
+                </button>
+                <h6 class="mui-typography-h6 title">FraudBase</h6>
+                <button class="mui-icon-button">
+                    <span class="material-icons">notifications</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Drawer -->
+        <div class="drawer">
+            <div class="mui-drawer drawer-paper">
+                <div class="mui-toolbar"></div>
+                <div class="mui-list">
+                    <div class="mui-list-item">
+                        <span class="material-icons">dashboard</span>
+                        <span class="mui-list-item-text">Dashboard</span>
+                    </div>
+                    <div class="mui-list-item">
+                        <span class="material-icons">person_add</span>
+                        <span class="mui-list-item-text">Cadastrar</span>
+                    </div>
+                    <div class="mui-list-item">
+                        <span class="material-icons">search</span>
+                        <span class="mui-list-item-text">Consultar</span>
+                    </div>
+                    <div class="mui-list-item">
+                        <span class="material-icons">bar_chart</span>
+                        <span class="mui-list-item-text">Gráficos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="content">
+            <div class="container">
+                <div class="mui-grid">
+                    <!-- Cards -->
+                    <div class="mui-grid-item" style="width: 100%">
+                        <div class="mui-paper" style="padding: 16px; margin: 16px;">
+                            <h2 class="mui-typography-h6">Total de Fraudes</h2>
+                            <p class="mui-typography-h4">235</p>
+                        </div>
+                    </div>
+                    <!-- Add more content here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mui/material@5.15.0/dist/mui-material.min.js"></script>
+</body>
+</html>

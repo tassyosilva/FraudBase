@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FraudBase - Login</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mui/material@5.15.0/dist/mui-material.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+        }
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-card {
+            padding: 32px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+            width: 100%;
+            max-width: 400px;
+        }
+        .form-field {
+            margin: 16px 0;
+        }
+        .login-button {
+            margin-top: 24px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <h2 class="mui-typography-h4" style="text-align: center; color: #1976d2; margin-bottom: 24px;">
+                FraudBase
+            </h2>
+            <form action="/login" method="POST">
+                <div class="form-field">
+                    <div class="mui-textfield mui-textfield--filled">
+                        <input type="text" name="username" required>
+                        <label>Usuário</label>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <div class="mui-textfield mui-textfield--filled">
+                        <input type="password" name="password" required>
+                        <label>Senha</label>
+                    </div>
+                </div>
+                <button class="mui-btn mui-btn--primary mui-btn--raised login-button" style="width: 100%">
+                    Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@mui/material@5.15.0/dist/mui-material.min.js"></script>
+</body>
+</html>
