@@ -1,114 +1,64 @@
-import React from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Grid
-} from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography, Tabs, Tab } from '@mui/material';
+import UserRegister from './UserRegister'; // Corrigido para importar o componente existente
+import UsersList from './UsersList';
 
-export default function Settings() {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    // Aqui será implementada a integração com o backend
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`settings-tabpanel-${index}`}
+      aria-labelledby={`settings-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
+
+const Settings: React.FC = () => {
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
   };
 
   return (
-    <Paper sx={{ p: 4, bgcolor: 'background.paper' }}>
-      <Typography variant="h6" color="white" gutterBottom>
-        Cadastro de Usuários
+    <Box sx={{ width: '100%', p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Configurações
       </Typography>
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 3 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              fullWidth
-              name="login"
-              label="Login"
-              variant="outlined"
-              sx={{ input: { color: 'white' }, label: { color: 'white' } }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              fullWidth
-              name="nome"
-              label="Nome Completo"
-              variant="outlined"
-              sx={{ input: { color: 'white' }, label: { color: 'white' } }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              fullWidth
-              name="cpf"
-              label="CPF"
-              variant="outlined"
-              sx={{ input: { color: 'white' }, label: { color: 'white' } }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              fullWidth
-              name="matricula"
-              label="Matrícula"
-              variant="outlined"
-              sx={{ input: { color: 'white' }, label: { color: 'white' } }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              name="telefone"
-              label="Telefone"
-              variant="outlined"
-              sx={{ input: { color: 'white' }, label: { color: 'white' } }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              fullWidth
-              name="unidade"
-              label="Unidade Policial"
-              variant="outlined"
-              sx={{ input: { color: 'white' }, label: { color: 'white' } }}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="email"
-              label="E-mail"
-              variant="outlined"
-              sx={{ input: { color: 'white' }, label: { color: 'white' } }}
-            />
-          </Grid>
-        </Grid>
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          sx={{ 
-            mt: 3,
-            mb: 2,
-            bgcolor: '#FFD700',
-            color: '#000000',
-            '&:hover': {
-              bgcolor: '#E5C100'
-            }
-          }}
-        >
-          Cadastrar Usuário
-        </Button>
+      
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+        <Tabs value={tabValue} onChange={handleChange} aria-label="settings tabs">
+          <Tab label="Cadastrar Usuário" />
+          <Tab label="Gerenciar Usuários" />
+        </Tabs>
       </Box>
-    </Paper>
+      
+      <TabPanel value={tabValue} index={0}>
+        <UserRegister />
+      </TabPanel>
+      
+      <TabPanel value={tabValue} index={1}>
+        <UsersList />
+      </TabPanel>
+    </Box>
   );
-}
+};
+
+export default Settings;
+export default Settings;

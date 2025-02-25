@@ -7,7 +7,7 @@ export const darkTheme = createTheme({
       main: '#FFD700', // Dourado
     },
     background: {
-      default: '#000000', // Preto
+      default: '#000000', // Branco
       paper: '#1C1C1C', // Cinza muito escuro
     },
     text: {

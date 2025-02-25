@@ -80,3 +80,126 @@ func (r *UserRepository) CreateUser(user *models.User) error {
 
     return err
 }
+
+// GetAllUsers retorna todos os usuários do banco de dados
+func (ur *UserRepository) GetAllUsers() ([]models.User, error) {
+    var users []models.User
+    
+    query := `SELECT id, login, nome, cpf, matricula, telefone, unidade_policial, email, is_admin 
+              FROM usuarios ORDER BY nome`
+    
+    rows, err := ur.db.Query(query)
+    if err != nil {
+        return nil, fmt.Errorf("erro ao buscar usuários: %v", err)
+    }
+    defer rows.Close()
+    
+    for rows.Next() {
+        var user models.User
+        err := rows.Scan(
+            &user.ID,
+            &user.Login,
+            &user.Nome,
+            &user.CPF,
+            &user.Matricula,
+            &user.Telefone,
+            &user.UnidadePolicial,
+            &user.Email,
+            &user.IsAdmin,
+        )
+        if err != nil {
+            return nil, fmt.Errorf("erro ao escanear usuário: %v", err)
+        }
+        // Não incluímos a senha na resposta
+        users = append(users, user)
+    }
+    
+    if err = rows.Err(); err != nil {
+        return nil, fmt.Errorf("erro ao iterar sobre os resultados: %v", err)
+    }
+    
+    return users, nil
+}
+
+// UpdateUser atualiza os dados de um usuário existente
+func (ur *UserRepository) UpdateUser(user models.User) error {
+    query := `UPDATE usuarios SET 
+                login = $1, 
+                nome = $2, 
+                cpf = $3, 
+                matricula = $4, 
+                telefone = $5, 
+                unidade_policial = $6, 
+                email = $7, 
+                is_admin = $8
+              WHERE id = $9`
+    
+    _, err := ur.db.Exec(
+        query,
+        user.Login,
+        user.Nome,
+        user.CPF,
+        user.Matricula,
+        user.Telefone,
+        user.UnidadePolicial,
+        user.Email,
+        user.IsAdmin,
+        user.ID,
+    )
+    
+    if err != nil {
+        return fmt.Errorf("erro ao atualizar usuário: %v", err)
+    }
+    
+    return nil
+}
+
+// UpdateUserPassword atualiza apenas a senha do usuário
+func (ur *UserRepository) UpdateUserPassword(userID int, hashedPassword string) error {
+    query := `UPDATE usuarios SET senha = $1 WHERE id = $2`
+    
+    _, err := ur.db.Exec(query, hashedPassword, userID)
+    if err != nil {
+        return fmt.Errorf("erro ao atualizar senha: %v", err)
+    }
+    
+    return nil
+}
+
+// DeleteUser remove um usuário do sistema
+func (ur *UserRepository) DeleteUser(userID int) error {
+    query := `DELETE FROM usuarios WHERE id = $1`
+    
+    _, err := ur.db.Exec(query, userID)
+    if err != nil {
+        return fmt.Errorf("erro ao excluir usuário: %v", err)
+    }
+    
+    return nil
+}
+
+// GetUserByID busca um usuário pelo ID
+func (ur *UserRepository) GetUserByID(userID int) (models.User, error) {
+    var user models.User
+    
+    query := `SELECT id, login, nome, cpf, matricula, telefone, unidade_policial, email, is_admin 
+              FROM usuarios WHERE id = $1`
+    
+    err := ur.db.QueryRow(query, userID).Scan(
+        &user.ID,
+        &user.Login,
+        &user.Nome,
+        &user.CPF,
+        &user.Matricula,
+        &user.Telefone,
+        &user.UnidadePolicial,
+        &user.Email,
+        &user.IsAdmin,
+    )
+    
+    if err != nil {
+        return models.User{}, fmt.Errorf("erro ao buscar usuário: %v", err)
+    }
+    
+    return user, nil
+}

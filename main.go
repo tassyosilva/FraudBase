@@ -23,7 +23,6 @@ func corsMiddleware(next http.Handler) http.Handler {
         next.ServeHTTP(w, r)
     })
 }
-
 func main() {
     db, err := database.ConnectDB()
     if err != nil {
@@ -40,6 +39,9 @@ func main() {
     
     r.HandleFunc("/api/login", authHandler.Login).Methods("POST", "OPTIONS")
     r.HandleFunc("/api/users", userHandler.CreateUser).Methods("POST", "OPTIONS")
+    r.HandleFunc("/api/users", userHandler.GetAllUsers).Methods("GET", "OPTIONS")
+    r.HandleFunc("/api/users/{id}", userHandler.DeleteUser).Methods("DELETE", "OPTIONS")
+    r.HandleFunc("/api/users", userHandler.UpdateUser).Methods("PUT", "OPTIONS")
 
     log.Println("Servidor rodando na porta 8080")
     log.Fatal(http.ListenAndServe(":8080", r))
