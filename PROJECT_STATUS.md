@@ -1,5 +1,7 @@
 # FraudBase - STATUS DO PROJETO
 
+Repositório: https://github.com/tassyosilva/FraudBase
+
 ## Implementação Atual
 - Sistema de login com autenticação PostgreSQL
 - Layout do Dashboard com tema escuro MUI

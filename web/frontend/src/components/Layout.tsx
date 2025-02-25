@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SettingsIcon from '@mui/icons-material/Settings';
+import PersonIcon from '@mui/icons-material/Person';
+
 interface MenuItem {
   text: string;
   icon?: React.ReactNode;
@@ -58,12 +60,16 @@ export default function Layout() {
     </Dashboard>
   );
 }
-
 const menuItems = [
   {
     text: 'Dashboard',
     icon: <DashboardIcon sx={{ color: 'gold' }} />,
     path: '/dashboard'
+  },
+  {
+    text: 'Cadastro de Envolvidos',
+    icon: <PersonIcon sx={{ color: 'gold' }} />,
+    path: '/cadastro-envolvidos'
   },
   {
     text: 'Configurações',

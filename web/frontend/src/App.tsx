@@ -7,6 +7,7 @@ import PrivateRoute from './components/PrivateRoute'
 import UsersList from './components/UsersList'
 import UserRegister from './components/UserRegister'
 import { darkTheme } from './theme/darkTheme'
+import CadastroEnvolvidos from './components/CadastroEnvolvidos'
 
 function App() {
   return (
@@ -19,11 +20,11 @@ function App() {
             <Route path="/dashboard" element={<div>Dashboard Content</div>} />
             <Route path="/settings/users" element={<UsersList />} />
             <Route path="/settings/register" element={<UserRegister />} />
+            <Route path="/cadastro-envolvidos" element={<CadastroEnvolvidos />} />
           </Route>
         </Routes>
       </Router>
     </ThemeProvider>
   )
 }
-
 export default App
