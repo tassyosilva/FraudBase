@@ -42,6 +42,7 @@ func main() {
     r.HandleFunc("/api/users", userHandler.GetAllUsers).Methods("GET", "OPTIONS")
     r.HandleFunc("/api/users/{id}", userHandler.DeleteUser).Methods("DELETE", "OPTIONS")
     r.HandleFunc("/api/users", userHandler.UpdateUser).Methods("PUT", "OPTIONS")
+    r.HandleFunc("/api/users/password", userHandler.UpdateUserPassword).Methods("PUT", "OPTIONS")
 
     log.Println("Servidor rodando na porta 8080")
     log.Fatal(http.ListenAndServe(":8080", r))

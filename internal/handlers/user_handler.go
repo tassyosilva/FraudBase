@@ -8,6 +8,7 @@ import (
     "github.com/gorilla/mux"
     "fraudbase/internal/models"
     "fraudbase/internal/repository"
+    "golang.org/x/crypto/bcrypt"  // Adicionar esta linha
 )
 type UserHandler struct {
     userRepo *repository.UserRepository
@@ -150,5 +151,78 @@ func (uh *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(map[string]string{
         "success": "true",
         "message": "Usuário excluído com sucesso",
+    })
+}
+
+// Adicionar esta função ao arquivo user_handler.go
+
+// UpdateUserPassword atualiza apenas a senha do usuário
+func (uh *UserHandler) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+    // Estrutura para receber os dados da requisição
+    var passwordData struct {
+        ID       int    `json:"id"`
+        Password string `json:"password"`
+    }
+    
+    err := json.NewDecoder(r.Body).Decode(&passwordData)
+    if err != nil {
+        w.WriteHeader(http.StatusBadRequest)
+        json.NewEncoder(w).Encode(map[string]string{
+            "success": "false",
+            "message": "Erro ao decodificar dados da senha",
+        })
+        log.Printf("Erro ao decodificar dados da senha: %v", err)
+        return
+    }
+    
+    // Verificar se o ID foi fornecido
+    if passwordData.ID == 0 {
+        w.WriteHeader(http.StatusBadRequest)
+        json.NewEncoder(w).Encode(map[string]string{
+            "success": "false",
+            "message": "ID do usuário não fornecido",
+        })
+        return
+    }
+    
+    // Verificar se o usuário existe
+    _, err = uh.userRepo.GetUserByID(passwordData.ID)
+    if err != nil {
+        w.WriteHeader(http.StatusNotFound)
+        json.NewEncoder(w).Encode(map[string]string{
+            "success": "false",
+            "message": "Usuário não encontrado",
+        })
+        return
+    }
+    
+    // Gerar hash da nova senha
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordData.Password), bcrypt.DefaultCost)
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        json.NewEncoder(w).Encode(map[string]string{
+            "success": "false",
+            "message": "Erro ao processar senha",
+        })
+        log.Printf("Erro ao gerar hash da senha: %v", err)
+        return
+    }
+    
+    // Atualizar a senha
+    err = uh.userRepo.UpdateUserPassword(passwordData.ID, string(hashedPassword))
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        json.NewEncoder(w).Encode(map[string]string{
+            "success": "false",
+            "message": "Erro ao atualizar senha",
+        })
+        log.Printf("Erro ao atualizar senha: %v", err)
+        return
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{
+        "success": "true",
+        "message": "Senha atualizada com sucesso",
     })
 }

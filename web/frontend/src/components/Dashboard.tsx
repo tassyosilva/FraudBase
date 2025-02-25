@@ -6,10 +6,7 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { Outlet } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
@@ -19,76 +16,40 @@ interface AppBarProps extends MuiAppBarProps {
 
 const drawerWidth: number = 240;
 
+// AppBar sempre no modo "aberto"
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
+})<AppBarProps>(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderBottom: `1px solid ${theme.palette.primary.main}`,
+  marginLeft: drawerWidth,
+  width: `calc(100% - ${drawerWidth}px)`,
   zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(['width', 'margin'], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  ...(open && {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  }),
 }));
 
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    '& .MuiDrawer-paper': {
-      backgroundColor: theme.palette.background.paper,
-      position: 'relative',
-      whiteSpace: 'nowrap',
-      width: drawerWidth,
-      transition: theme.transitions.create('width', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      boxSizing: 'border-box',
-      ...(!open && {
-        overflowX: 'hidden',
-        transition: theme.transitions.create('width', {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen,
-        }),
-        width: theme.spacing(7),
-        [theme.breakpoints.up('sm')]: {
-          width: theme.spacing(9),
-        },
-      }),
-    },
-  }),
-);
+// Drawer sempre visível com largura fixa
+const Drawer = styled(MuiDrawer)(({ theme }) => ({
+  '& .MuiDrawer-paper': {
+    backgroundColor: theme.palette.background.paper,
+    position: 'relative',
+    whiteSpace: 'nowrap',
+    width: drawerWidth,
+    boxSizing: 'border-box',
+  },
+}));
 
 interface DashboardProps {
   children: React.ReactNode;
 }
 
 export default function Dashboard({ children }: DashboardProps) {
-  const [open, setOpen] = React.useState(true);
-  const toggleDrawer = () => {
-    setOpen(!open);
-  };
+  // Removido estado open e função toggleDrawer
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar position="absolute" open={open}>
+      <AppBar position="absolute">
         <Toolbar sx={{ pr: '24px' }}>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="open drawer"
-            onClick={toggleDrawer}
-            sx={{ marginRight: '36px', ...(open && { display: 'none' }) }}
-          >
-            <MenuIcon />
-          </IconButton>
+          {/* Removido botão de toggle do menu */}
           <img src={logo} alt="FraudBase Logo" style={{ height: '40px', marginRight: '20px' }} />
           <Typography
             component="h1"
@@ -101,18 +62,15 @@ export default function Dashboard({ children }: DashboardProps) {
           </Typography>
         </Toolbar>
       </AppBar>
-      <Drawer variant="permanent" open={open}>
+      <Drawer variant="permanent">
         <Toolbar
           sx={{
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
             px: [1],
+            // Removida justificação para o final (não precisamos do espaço para o botão)
           }}
         >
-          <IconButton onClick={toggleDrawer}>
-            <ChevronLeftIcon sx={{ color: 'primary.main' }} />
-          </IconButton>
+          {/* Removido botão de toggle do drawer */}
         </Toolbar>
         <Divider sx={{ borderColor: 'primary.main' }} />
         {children}

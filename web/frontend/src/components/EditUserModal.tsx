@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
   DialogActions,
   TextField,
   Button,
@@ -10,8 +10,15 @@ import {
   Switch,
   Grid,
   CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
+  Divider,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { User } from '../types/User';
+
 interface EditUserModalProps {
   open: boolean;
   onClose: () => void;
@@ -24,9 +31,21 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Estado para controlar alteração de senha
+  const [changePassword, setChangePassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState('');
+
   useEffect(() => {
     if (user) {
       setFormData({ ...user });
+      // Reset senha quando o usuário muda
+      setChangePassword(false);
+      setPasswordData({ newPassword: '', confirmPassword: '' });
+      setPasswordError('');
     }
   }, [user]);
 
@@ -36,21 +55,33 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, checked, type } = e.target;
-    
+
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
-    
-    // Limpar erro quando o usuário começa a digitar
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setPasswordData({
+      ...passwordData,
+      [name]: value
+    });
+
+    if (passwordError) {
+      setPasswordError('');
+    }
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.login) newErrors.login = 'Login é obrigatório';
     if (!formData.nome) newErrors.nome = 'Nome é obrigatório';
     if (!formData.email) {
@@ -60,17 +91,57 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
     }
     if (!formData.cpf) newErrors.cpf = 'CPF é obrigatório';
     if (!formData.matricula) newErrors.matricula = 'Matrícula é obrigatória';
-    
+
     setErrors(newErrors);
+
+    // Validar a senha se a opção de alterar senha estiver ativa
+    if (changePassword) {
+      if (!passwordData.newPassword) {
+        setPasswordError('Nova senha é obrigatória');
+        return false;
+      }
+      if (passwordData.newPassword.length < 6) {
+        setPasswordError('A senha deve ter pelo menos 6 caracteres');
+        return false;
+      }
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        setPasswordError('As senhas não coincidem');
+        return false;
+      }
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-    
+
     try {
       setLoading(true);
+
+      // Salvar os dados do usuário
       await onSave(formData);
+
+      // Se alterou a senha, chamar endpoint específico
+      if (changePassword && passwordData.newPassword) {
+        const response = await fetch('http://localhost:8080/api/users/password', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            id: formData.id,
+            password: passwordData.newPassword
+          })
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'Erro ao atualizar senha');
+        }
+      }
+
       onClose();
     } catch (error) {
       console.error('Erro ao salvar usuário:', error);
@@ -175,16 +246,64 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
               label="Administrador"
             />
           </Grid>
+
+          {/* Seção de Alteração de Senha */}
+          <Grid item xs={12}>
+            <Divider sx={{ my: 2 }} />
+            <Accordion
+              expanded={changePassword}
+              onChange={() => setChangePassword(!changePassword)}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  backgroundColor: 'rgba(255, 215, 0, 0.05)',
+                  '&:hover': { backgroundColor: 'rgba(255, 215, 0, 0.1)' }
+                }}
+              >
+                <Typography sx={{ fontWeight: 'medium', color: 'primary.main' }}>
+                  Alterar Senha
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Nova Senha"
+                      name="newPassword"
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={handlePasswordChange}
+                      error={Boolean(passwordError)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Confirmar Senha"
+                      name="confirmPassword"
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={handlePasswordChange}
+                      error={Boolean(passwordError)}
+                      helperText={passwordError}
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </Grid>
         </Grid>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="inherit">Cancelar</Button>
-        <Button 
-          onClick={handleSubmit} 
-          variant="contained" 
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
           color="primary"
           disabled={loading}
-          sx={{ 
+          sx={{
             backgroundColor: '#FFD700',
             color: 'black',
             '&:hover': { backgroundColor: '#E6C200' },

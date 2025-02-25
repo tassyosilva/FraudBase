@@ -52,9 +52,12 @@ const UserRegister = () => {
       setError('Erro ao cadastrar usuário. Tente novamente.')
     }
   }
-
   return (
     <Paper sx={{ p: 2 }}>
+      <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3, color: '#FFFFFF', fontWeight: 'medium' }}>
+        Cadastro de Novos Usuários
+      </Typography>
+      
       <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField 
           label="Login" 
