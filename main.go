@@ -33,10 +33,13 @@ func main() {
 
     userRepo := repository.NewUserRepository(db)
     authHandler := handlers.NewAuthHandler(userRepo)
+    userHandler := handlers.NewUserHandler(userRepo)
 
     r := mux.NewRouter()
     r.Use(corsMiddleware)
+    
     r.HandleFunc("/api/login", authHandler.Login).Methods("POST", "OPTIONS")
+    r.HandleFunc("/api/users", userHandler.CreateUser).Methods("POST", "OPTIONS")
 
     log.Println("Servidor rodando na porta 8080")
     log.Fatal(http.ListenAndServe(":8080", r))

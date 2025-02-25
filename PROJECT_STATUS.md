@@ -49,19 +49,58 @@
 - Gerenciamento de Estado: Session Storage
 - Ambiente de Desenvolvimento: Ubuntu Desktop
 
+## Última Implementação
+- Implementado cadastro de usuários com validações
+- Adicionado seleção de tipo de usuário (admin/padrão)
+- Implementada criptografia de senha com bcrypt
+- Adicionadas validações de campos únicos (email, login)
+- Integração completa frontend-backend para cadastro
+- Mensagens de erro/sucesso no frontend
+- Correção da autenticação para senhas criptografadas
+
+## Implementação em Andamento
+- Configuração do cadastro de usuários (concluído)
+- Visualização de usuários (em desenvolvimento)
+- Próximas features: deletar usuários e alterar senha
+
 ## Estrutura de Diretórios Atual
 /projeto-go
   /internal
     /database
+      └── config.go
     /handlers
+      ├── auth.go
+      ├── dashboard.go
+      └── user_handler.go
     /models
+      ├── fraud.go
+      └── user.go
     /repository
+      └── user_repository.go
+  /src
+    /types
+      └── DashboardProps.ts
   /web
     /frontend
-      /src
-        /components
-        /theme
+      ├── eslint.config.js
+      ├── index.html
+      ├── package.json
+      ├── package-lock.json
+      ├── public
+      ├── README.md
+      ├── src
+      ├── tsconfig.app.json
+      ├── tsconfig.json
+      ├── tsconfig.node.json
+      ├── vite.config.ts
+      └── web
 
+## Próximos Passos
+- Implementar listagem de usuários
+- Adicionar funcionalidade de deletar usuário
+- Implementar alteração de senha
+- Criar validações de permissões admin
+- Implementar logout
 # FraudBase - PROJECT STATUS
 
 ## Current Implementation

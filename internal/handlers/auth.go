@@ -5,6 +5,7 @@ import (
     "net/http"
     "log"
     "fraudbase/internal/repository"
+    "golang.org/x/crypto/bcrypt"
 )
 type AuthHandler struct {
     userRepo *repository.UserRepository
@@ -42,9 +43,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    log.Printf("Database comparison - Input password: %s, Stored password: %s", req.Password, user.Senha)
-
-    if user.Senha != req.Password {
+    err = bcrypt.CompareHashAndPassword([]byte(user.Senha), []byte(req.Password))
+    if err != nil {
         log.Printf("Password mismatch")
         http.Error(w, "Invalid credentials", http.StatusUnauthorized)
         return
