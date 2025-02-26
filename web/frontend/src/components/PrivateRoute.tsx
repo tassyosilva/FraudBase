@@ -1,14 +1,20 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 
 interface PrivateRouteProps {
-  children: React.ReactNode;
+  children: JSX.Element;
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const isAuthenticated = sessionStorage.getItem('isAuthenticated');
+const PrivateRoute = ({ children }: PrivateRouteProps) => {
+  // Verifique se há um token no sessionStorage
+  const isAuthenticated = sessionStorage.getItem('token') !== null;
   
-  return isAuthenticated ? <>{children}</> : <Navigate to="/" />;
+  // Se não estiver autenticado, redirecione para a página de login
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  // Se estiver autenticado, renderize o componente filho
+  return children;
 };
 
 export default PrivateRoute;

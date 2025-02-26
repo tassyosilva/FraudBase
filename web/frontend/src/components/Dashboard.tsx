@@ -6,10 +6,10 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import Button from '@mui/material/Button';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+// import { useNavigate } from 'react-router-dom';
 import { Outlet } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
@@ -17,11 +17,11 @@ interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
 }
 
-const drawerWidth: number = 240;
+const drawerWidth: number = 280;
 
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
+})<AppBarProps>(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderBottom: `1px solid ${theme.palette.primary.main}`,
   zIndex: theme.zIndex.drawer + 1,
@@ -50,6 +50,18 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ children }: DashboardProps) {
+  // const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    // Limpar completamente o sessionStorage
+    sessionStorage.clear();
+    
+    // Forçar uma atualização da página para garantir que todas as referências em memória sejam limpas
+    window.location.href = '/';
+    
+    // Nota: Usamos window.location.href em vez de navigate para garantir um refresh completo
+  };
+
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar position="absolute">
@@ -64,6 +76,23 @@ export default function Dashboard({ children }: DashboardProps) {
           >
             FraudBase
           </Typography>
+          
+          <Button
+            variant="outlined"
+            color="inherit"
+            startIcon={<ExitToAppIcon />}
+            onClick={handleLogout}
+            sx={{ 
+              color: 'white',
+              borderColor: 'gold',
+              '&:hover': {
+                borderColor: 'gold',
+                backgroundColor: 'rgba(255, 215, 0, 0.1)'
+              }
+            }}
+          >
+            Sair do Sistema
+          </Button>
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent">
@@ -74,9 +103,7 @@ export default function Dashboard({ children }: DashboardProps) {
             justifyContent: 'flex-end',
             px: [1],
           }}
-        >
-          {/* Removido botão de toggle */}
-        </Toolbar>
+        />
         <Divider sx={{ borderColor: 'primary.main' }} />
         {children}
       </Drawer>
