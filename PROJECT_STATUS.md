@@ -4,6 +4,7 @@ Repositório: https://github.com/tassyosilva/FraudBase
 
 ## Implementação Atual
 - Sistema de login com autenticação PostgreSQL
+- Credenciais admin atuais: admin/admin
 - Layout do Dashboard com tema escuro MUI
 - Rotas protegidas com armazenamento de sessão
 - Configuração CORS para desenvolvimento local
@@ -12,6 +13,8 @@ Repositório: https://github.com/tassyosilva/FraudBase
 - Cadastro de usuários implementado
 - Listagem de usuários implementada
 - Menu lateral fixo para navegação constante
+- Funcionalidade de logout implementada corretamente
+- Início da implementação do formulário de cadastro de envolvidos
 
 ## Componentes Criados
 - SignIn (com validação de formulário e autenticação no banco)
@@ -31,12 +34,22 @@ Repositório: https://github.com/tassyosilva/FraudBase
 - Settings (componente com tabs para navegação entre cadastro e gerenciamento de usuários)
 - UserRegister (formulário para cadastro de novos usuários com validação de campos)
 - UsersList (listagem de usuários com opções de edição e exclusão)
+- CadastroEnvolvidos (formulário organizado em seções usando Accordion)
+  - Implementa formatação automática para CPF (123.456.789-00)
+  - Implementa formatação automática para telefone (95)99139-9001
+  - Organiza os dados em seções lógicas (Dados do Envolvido, Dados do Fato, etc.)
+  - Estruturado para interagir com a tabela tabela_estelionato
 
 ## Estrutura do Banco de Dados
 - Banco: estelionato
-- Tabela: usuarios
-  - Campos: id, login, nome, cpf, matricula, telefone, unidade_policial, email, senha, is_admin
-- Credenciais admin atuais: admin/admin
+- Tabelas:
+  - usuarios: id, login, nome, cpf, matricula, telefone, unidade_policial, email, senha, is_admin
+  - tabela_estelionato: "id","numero_do_bo","tipo_envolvido","nomecompleto","cpf","nomedamae","nascimento","nacionalidade","naturalidade","uf_envolvido","sexo_envolvido","telefone_envolvido","data_fato","cep_fato","latitude_fato","longitude_fato","logradouro_fato","numerocasa_fato","bairro_fato","municipio_fato","pais_fato","delegacia_responsavel","situacao","natureza","relato_historico","instituicao_bancaria","endereco_ip","valor","pix_utilizado","numero_conta_bancaria","numero_boleto","processo_banco","numero_agencia_bancaria","cartao","terminal","tipo_pagamento","orgao_concessionaria","veiculo","terminal_conexao","erb","operacao_policial","numero_laudo_pericial"
+  - bancos: "codigo","ispb","cnpj","nome_completo","nome_reduzido","url"
+  - delegacias: "id","nome"
+  - municipios_e_estados: "codigo_municipio_ibge","municipio","uf"
+  - paises: "codigo_pais_ison3","codigo_pais_isoa3","nome_pais"
+
 
 ## Estrutura do Backend
 - Handlers: auth.go (tratamento de login), user_handler.go (gerenciamento de usuários)
@@ -57,21 +70,16 @@ Repositório: https://github.com/tassyosilva/FraudBase
     - Gerencia navegação entre rotas
 
 ## Última Implementação
-- Implementado cadastro de usuários com validações
-- Adicionado seleção de tipo de usuário (admin/padrão)
-- Implementada criptografia de senha com bcrypt
-- Adicionadas validações de campos únicos (email, login)
-- Integração completa frontend-backend para cadastro
-- Mensagens de erro/sucesso no frontend
-- Correção da autenticação para senhas criptografadas
-- Implementado listagem de usuários na página de configurações
-- Criado endpoints para listar todos os usuários do sistema
-- Convertido menu lateral deslizante para menu fixo
-- Atualizado tema para fundo em tom branco gelo
+- Corrigido problema de logout que não encerrava completamente a sessão
+- Iniciado desenvolvimento do formulário de cadastro de envolvidos
+- Implementado layout organizado com Accordion para o formulário
+- Adicionada formatação automática para campos CPF e telefone
+- Estruturado o formulário para interação com a tabela tabela_estelionato
+- Adicionado validações básicas para o formulário
 
 ## Implementação em Andamento
-- Funcionalidade de edição e exclusão de usuários
-- Próximas features: gerenciar permissões e alterar senha
+- Formulário de cadastro de envolvidos
+- Integração com backend para tabela tabela_estelionato
 
 ## Estrutura de Diretórios Atual
 /projeto-go
@@ -99,7 +107,9 @@ Repositório: https://github.com/tassyosilva/FraudBase
           ├── Settings.tsx
           ├── SignIn.tsx
           ├── UserRegister.tsx
-          └── UsersList.tsx
+          ├── UsersList.tsx
+          ├── EditUserModal.tsx     
+          └── CadastroEnvolvidos.tsx
         ├── styles
         ├── theme
           └── darkTheme.ts
@@ -107,12 +117,13 @@ Repositório: https://github.com/tassyosilva/FraudBase
           └── User.ts
         ├── App.tsx
         └── main.tsx
-
 ## Próximos Passos
-- Implementar funcionalidade de editar usuário
-- Implementar funcionalidade de deletar usuário
-- Adicionar confirmação para operações de exclusão
-- Implementar alteração de senha
+- Finalizar formulário de cadastro de envolvidos com validações adicionais
+- Criar modelos e repositories no backend para tabela tabela_estelionato
+- Implementar API REST para cadastro de envolvidos no backend
+- Integrar o formulário frontend com o backend
+- Implementar listagem dos envolvidos cadastrados
+- Adicionar funcionalidades de edição e exclusão de envolvidos
+- Implementar alteração de senha para usuários
 - Criar validações de permissões admin
-- Implementar logout
 - Desenvolver recursos de análise e gráficos para o dashboard
