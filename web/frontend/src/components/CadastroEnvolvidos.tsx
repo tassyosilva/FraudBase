@@ -73,6 +73,10 @@ const CadastroEnvolvidos = () => {
   const [paises, setPaises] = useState<{ nome_pais: string }[]>([]);
   // Estado para controlar o carregamento dos países
   const [paisesLoading, setPaisesLoading] = useState(false);
+  // Estado para armazenar a lista de delegacias
+  const [delegacias, setDelegacias] = useState<{ nome: string }[]>([]);
+  // Estado para controlar o carregamento das delegacias
+  const [delegaciasLoading, setDelegaciasLoading] = useState(false);
 
   // Estado para os dados do formulário
   const [formData, setFormData] = useState({
@@ -204,11 +208,40 @@ const CadastroEnvolvidos = () => {
     }
   };
 
-  // Carregar municípios, UFs e países quando o componente montar
+  // Função para buscar delegacias
+  const fetchDelegacias = async () => {
+    setDelegaciasLoading(true);
+    try {
+      const response = await fetch('http://localhost:8080/api/delegacias', {
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao carregar delegacias');
+      }
+
+      const data = await response.json();
+      setDelegacias(data);
+    } catch (error) {
+      console.error('Erro ao buscar delegacias:', error);
+      setAlert({
+        open: true,
+        message: 'Erro ao carregar lista de delegacias.',
+        severity: 'error'
+      });
+    } finally {
+      setDelegaciasLoading(false);
+    }
+  };
+
+  // Carregar municípios, UFs, países e delegacias quando o componente montar
   useEffect(() => {
     fetchMunicipios();
     fetchUFs();
     fetchPaises();
+    fetchDelegacias();
   }, []);
 
   // Função para validar o CPF (apenas verificação de 11 dígitos)
@@ -690,12 +723,29 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
+                  select
                   label="Delegacia Responsável"
                   name="delegacia_responsavel"
                   value={formData.delegacia_responsavel}
                   onChange={handleChange}
                   variant="outlined"
-                />
+                  disabled={delegaciasLoading}
+                  SelectProps={{
+                    MenuProps: {
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {delegacias.map((option) => (
+                    <MenuItem key={option.nome} value={option.nome}>
+                      {option.nome}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
