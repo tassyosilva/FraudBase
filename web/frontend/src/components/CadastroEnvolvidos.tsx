@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Paper,
   Typography,
@@ -61,6 +61,10 @@ const CadastroEnvolvidos = () => {
   const [expanded, setExpanded] = useState<string | false>('panel1');
   // Estado para mensagens de sucesso ou erro
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  // Estado para armazenar a lista de municípios
+  const [municipios, setMunicipios] = useState<{ municipio: string }[]>([]);
+  // Estado para controlar o carregamento dos municípios
+  const [municipiosLoading, setMunicipiosLoading] = useState(false);
 
   // Estado para os dados do formulário
   const [formData, setFormData] = useState({
@@ -108,6 +112,39 @@ const CadastroEnvolvidos = () => {
     numero_laudo_pericial: ''
   });
 
+  // Função para buscar municípios da API
+  const fetchMunicipios = async () => {
+    setMunicipiosLoading(true);
+    try {
+      const response = await fetch('http://localhost:8080/api/municipios', {
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao carregar municípios');
+      }
+
+      const data = await response.json();
+      setMunicipios(data);
+    } catch (error) {
+      console.error('Erro ao buscar municípios:', error);
+      setAlert({
+        open: true,
+        message: 'Erro ao carregar lista de municípios.',
+        severity: 'error'
+      });
+    } finally {
+      setMunicipiosLoading(false);
+    }
+  };
+
+  // Carregar municípios quando o componente montar
+  useEffect(() => {
+    fetchMunicipios();
+  }, []);
+
   // Função para validar o CPF (apenas verificação de 11 dígitos)
   const validateCPF = (cpf: string) => {
     if (cpf) {
@@ -129,15 +166,15 @@ const CadastroEnvolvidos = () => {
   // Função para lidar com mudanças nos campos do formulário
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'cpf') {
       const formattedCPF = formatCPF(value);
-      
+
       setFormData({
         ...formData,
         [name]: formattedCPF
       });
-      
+
       const cpfDigitsOnly = value.replace(/\D/g, '');
       if (cpfDigitsOnly && cpfDigitsOnly.length !== 11) {
         setErrors({
@@ -150,7 +187,7 @@ const CadastroEnvolvidos = () => {
       }
     } else if (name === 'telefone_envolvido') {
       const formattedPhone = formatPhone(value);
-      
+
       setFormData({
         ...formData,
         [name]: formattedPhone
@@ -357,12 +394,29 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
+                  select
                   label="Naturalidade"
                   name="naturalidade"
                   value={formData.naturalidade}
                   onChange={handleChange}
                   variant="outlined"
-                />
+                  disabled={municipiosLoading}
+                  SelectProps={{
+                    MenuProps: {
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {municipios.map((option) => (
+                    <MenuItem key={option.municipio} value={option.municipio}>
+                      {option.municipio}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -834,7 +888,7 @@ export default CadastroEnvolvidos;
 const formatCPF = (cpf: string) => {
   const numbers = cpf.replace(/\D/g, '');
   const cpfLimited = numbers.slice(0, 11);
-  
+
   return cpfLimited.replace(
     /^(\d{3})(\d{3})(\d{3})(\d{2})$/,
     '$1.$2.$3-$4'
@@ -853,7 +907,7 @@ const formatCPF = (cpf: string) => {
 const formatPhone = (phone: string) => {
   const numbers = phone.replace(/\D/g, '');
   const phoneLimited = numbers.slice(0, 11);
-  
+
   if (phoneLimited.length >= 10) {
     const ddd = phoneLimited.slice(0, 2);
     const firstPart = phoneLimited.slice(2, -4);
