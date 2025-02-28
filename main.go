@@ -47,6 +47,7 @@ func main() {
     r.HandleFunc("/api/users", userHandler.UpdateUser).Methods("PUT", "OPTIONS")
     r.HandleFunc("/api/users/password", userHandler.UpdateUserPassword).Methods("PUT", "OPTIONS")
     r.HandleFunc("/api/municipios", municipioHandler.GetAllMunicipios).Methods("GET", "OPTIONS")
+    r.HandleFunc("/api/ufs", municipioHandler.GetAllUFs).Methods("GET", "OPTIONS")
     
     log.Println("Servidor rodando na porta 8080")
     log.Fatal(http.ListenAndServe(":8080", r))

@@ -65,6 +65,10 @@ const CadastroEnvolvidos = () => {
   const [municipios, setMunicipios] = useState<{ municipio: string }[]>([]);
   // Estado para controlar o carregamento dos municípios
   const [municipiosLoading, setMunicipiosLoading] = useState(false);
+  // Estado para armazenar a lista de UFs
+  const [ufs, setUfs] = useState<{ uf: string }[]>([]);
+  // Estado para controlar o carregamento das UFs
+  const [ufsLoading, setUfsLoading] = useState(false);
 
   // Estado para os dados do formulário
   const [formData, setFormData] = useState({
@@ -140,9 +144,38 @@ const CadastroEnvolvidos = () => {
     }
   };
 
-  // Carregar municípios quando o componente montar
+  // Função para buscar UFs
+  const fetchUFs = async () => {
+    setUfsLoading(true);
+    try {
+      const response = await fetch('http://localhost:8080/api/ufs', {
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao carregar UFs');
+      }
+
+      const data = await response.json();
+      setUfs(data);
+    } catch (error) {
+      console.error('Erro ao buscar UFs:', error);
+      setAlert({
+        open: true,
+        message: 'Erro ao carregar lista de UFs.',
+        severity: 'error'
+      });
+    } finally {
+      setUfsLoading(false);
+    }
+  };
+
+  // Carregar municípios e UFs quando o componente montar
   useEffect(() => {
     fetchMunicipios();
+    fetchUFs();
   }, []);
 
   // Função para validar o CPF (apenas verificação de 11 dígitos)
@@ -421,12 +454,29 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
+                  select
                   label="UF"
                   name="uf_envolvido"
                   value={formData.uf_envolvido}
                   onChange={handleChange}
                   variant="outlined"
-                />
+                  disabled={ufsLoading}
+                  SelectProps={{
+                    MenuProps: {
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {ufs.map((option) => (
+                    <MenuItem key={option.uf} value={option.uf}>
+                      {option.uf}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField

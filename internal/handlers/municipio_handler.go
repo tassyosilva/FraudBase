@@ -33,3 +33,22 @@ func (h *MunicipioHandler) GetAllMunicipios(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(municipios)
 }
+
+func (h *MunicipioHandler) GetAllUFs(w http.ResponseWriter, r *http.Request) {
+	log.Println("Iniciando busca de UFs")
+	
+	ufs, err := h.municipioRepo.GetAllUFs()
+	if err != nil {
+		log.Printf("Erro ao buscar UFs: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"success": "false",
+			"message": "Erro ao buscar UFs",
+		})
+		return
+	}
+	
+	log.Printf("Encontradas %d UFs", len(ufs))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ufs)
+}
