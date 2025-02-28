@@ -40,6 +40,8 @@ func main() {
     delegaciaHandler := handlers.NewDelegaciaHandler(delegaciaRepo)
     bancoRepo := repository.NewBancoRepository(db)
     bancoHandler := handlers.NewBancoHandler(bancoRepo)
+    envolvidoRepo := repository.NewEnvolvidoRepository(db)
+    envolvidoHandler := handlers.NewEnvolvidoHandler(envolvidoRepo)
 
     r := mux.NewRouter()
     
@@ -57,6 +59,7 @@ func main() {
     r.HandleFunc("/api/paises", paisHandler.GetAllPaises).Methods("GET", "OPTIONS")
     r.HandleFunc("/api/delegacias", delegaciaHandler.GetAllDelegacias).Methods("GET", "OPTIONS")
     r.HandleFunc("/api/bancos", bancoHandler.GetAllBancos).Methods("GET", "OPTIONS")
+    r.HandleFunc("/api/envolvidos", envolvidoHandler.CreateEnvolvido).Methods("POST", "OPTIONS")
     
     log.Println("Servidor rodando na porta 8080")
     log.Fatal(http.ListenAndServe(":8080", r))
