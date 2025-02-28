@@ -678,22 +678,56 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
+                  select
                   label="Município"
                   name="municipio_fato"
                   value={formData.municipio_fato}
                   onChange={handleChange}
                   variant="outlined"
-                />
+                  disabled={municipiosLoading}
+                  SelectProps={{
+                    MenuProps: {
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {municipios.map((option) => (
+                    <MenuItem key={option.municipio} value={option.municipio}>
+                      {option.municipio}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
+                  select
                   label="País"
                   name="pais_fato"
                   value={formData.pais_fato}
                   onChange={handleChange}
                   variant="outlined"
-                />
+                  disabled={paisesLoading}
+                  SelectProps={{
+                    MenuProps: {
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {paises.map((option) => (
+                    <MenuItem key={option.nome_pais} value={option.nome_pais}>
+                      {option.nome_pais}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Grid>
             </Grid>
           </AccordionDetails>
