@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"log"
+	"time"
 )
 
 type EnvolvidoRepository struct {
@@ -61,6 +62,22 @@ func NewEnvolvidoRepository(db *sql.DB) *EnvolvidoRepository {
 func (r *EnvolvidoRepository) CreateEnvolvido(e Envolvido) (string, error) {
 	log.Println("Iniciando cadastro de envolvido em caso de estelionato")
 	
+	// Converter data de nascimento para formato brasileiro
+	nascimento := e.Nascimento
+	if nascimento != "" {
+		if t, err := time.Parse("2006-01-02", nascimento); err == nil {
+			nascimento = t.Format("02/01/2006")
+		}
+	}
+	
+	// Converter data do fato para formato brasileiro
+	dataFato := e.DataFato
+	if dataFato != "" {
+		if t, err := time.Parse("2006-01-02", dataFato); err == nil {
+			dataFato = t.Format("02/01/2006")
+		}
+	}
+	
 	query := `
 		INSERT INTO tabela_estelionato (
 			numero_do_bo, tipo_envolvido, nomecompleto, cpf, nomedamae, 
@@ -83,8 +100,8 @@ func (r *EnvolvidoRepository) CreateEnvolvido(e Envolvido) (string, error) {
 	err := r.db.QueryRow(
 		query,
 		e.NumeroDoBo, e.TipoEnvolvido, e.NomeCompleto, e.CPF, e.NomeDaMae,
-		e.Nascimento, e.Nacionalidade, e.Naturalidade, e.UFEnvolvido, e.SexoEnvolvido, 
-		e.TelefoneEnvolvido, e.DataFato, e.CEPFato, e.LatitudeFato, e.LongitudeFato,
+		nascimento, e.Nacionalidade, e.Naturalidade, e.UFEnvolvido, e.SexoEnvolvido, 
+		e.TelefoneEnvolvido, dataFato, e.CEPFato, e.LatitudeFato, e.LongitudeFato,
 		e.LogradouroFato, e.NumeroCasaFato, e.BairroFato, e.MunicipioFato, e.PaisFato,
 		e.DelegaciaResponsavel, e.Situacao, e.Natureza, e.RelatoHistorico, e.InstituicaoBancaria,
 		e.EnderecoIP, e.Valor, e.PixUtilizado, e.NumeroContaBancaria, e.NumeroBoleto,
