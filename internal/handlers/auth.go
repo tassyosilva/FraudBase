@@ -6,6 +6,7 @@ import (
     "log"
     "fraudbase/internal/repository"
     "golang.org/x/crypto/bcrypt"
+    "fraudbase/internal/auth"
 )
 type AuthHandler struct {
     userRepo *repository.UserRepository
@@ -50,10 +51,18 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // Gerar token JWT
+    token, err := auth.GenerateToken(user.ID, user.Login, user.IsAdmin)
+    if err != nil {
+        log.Printf("JWT generation error: %v", err)
+        http.Error(w, "Authentication error", http.StatusInternalServerError)
+        return
+    }
+
     log.Println("=== Login Successful ===")
 
     response := LoginResponse{
-        Token: "jwt-token-here",
+        Token:   token,
         IsAdmin: user.IsAdmin,
     }
 

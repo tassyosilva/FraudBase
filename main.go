@@ -5,6 +5,7 @@ import (
     "net/http"
     "fraudbase/internal/database"
     "fraudbase/internal/handlers"
+    "fraudbase/internal/middleware"
     "fraudbase/internal/repository"
     "github.com/gorilla/mux"
 )
@@ -28,7 +29,7 @@ func main() {
         log.Fatal(err)
     }
     defer db.Close()
-
+    
     userRepo := repository.NewUserRepository(db)
     authHandler := handlers.NewAuthHandler(userRepo)
     userHandler := handlers.NewUserHandler(userRepo)
@@ -42,24 +43,38 @@ func main() {
     bancoHandler := handlers.NewBancoHandler(bancoRepo)
     envolvidoRepo := repository.NewEnvolvidoRepository(db)
     envolvidoHandler := handlers.NewEnvolvidoHandler(envolvidoRepo)
-
+    
     r := mux.NewRouter()
     
-    // Aplicando o middleware a todas as rotas
+    // Middleware de CORS a todas as rotas
     r.Use(corsMiddleware)
     
+    // Rota de login (não protegida)
     r.HandleFunc("/api/login", authHandler.Login).Methods("POST", "OPTIONS")
+    
+    // Rotas públicas (quando houver)
     r.HandleFunc("/api/users", userHandler.CreateUser).Methods("POST", "OPTIONS")
-    r.HandleFunc("/api/users", userHandler.GetAllUsers).Methods("GET", "OPTIONS")
-    r.HandleFunc("/api/users/{id}", userHandler.DeleteUser).Methods("DELETE", "OPTIONS")
-    r.HandleFunc("/api/users", userHandler.UpdateUser).Methods("PUT", "OPTIONS")
-    r.HandleFunc("/api/users/password", userHandler.UpdateUserPassword).Methods("PUT", "OPTIONS")
-    r.HandleFunc("/api/municipios", municipioHandler.GetAllMunicipios).Methods("GET", "OPTIONS")
-    r.HandleFunc("/api/ufs", municipioHandler.GetAllUFs).Methods("GET", "OPTIONS")
-    r.HandleFunc("/api/paises", paisHandler.GetAllPaises).Methods("GET", "OPTIONS")
-    r.HandleFunc("/api/delegacias", delegaciaHandler.GetAllDelegacias).Methods("GET", "OPTIONS")
-    r.HandleFunc("/api/bancos", bancoHandler.GetAllBancos).Methods("GET", "OPTIONS")
-    r.HandleFunc("/api/envolvidos", envolvidoHandler.CreateEnvolvido).Methods("POST", "OPTIONS")
+    
+    // Rotas protegidas por JWT
+    apiRouter := r.PathPrefix("/api").Subrouter()
+    apiRouter.Use(middleware.JWTAuthMiddleware)
+    
+    // Rotas protegidas ao apiRouter
+    apiRouter.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE", "OPTIONS")
+    apiRouter.HandleFunc("/users", userHandler.UpdateUser).Methods("PUT", "OPTIONS")
+    apiRouter.HandleFunc("/users/password", userHandler.UpdateUserPassword).Methods("PUT", "OPTIONS")
+    apiRouter.HandleFunc("/municipios", municipioHandler.GetAllMunicipios).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/ufs", municipioHandler.GetAllUFs).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/paises", paisHandler.GetAllPaises).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/delegacias", delegaciaHandler.GetAllDelegacias).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/bancos", bancoHandler.GetAllBancos).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/envolvidos", envolvidoHandler.CreateEnvolvido).Methods("POST", "OPTIONS")
+    
+    // Rotas que exigem privilégios de administrador (se necessário)
+    // adminRouter := apiRouter.PathPrefix("/admin").Subrouter()
+    // adminRouter.Use(middleware.AdminOnly)
+    // ... rotas de admin
     
     log.Println("Servidor rodando na porta 8080")
     log.Fatal(http.ListenAndServe(":8080", r))
