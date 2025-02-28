@@ -34,6 +34,8 @@ func main() {
     userHandler := handlers.NewUserHandler(userRepo)
     municipioRepo := repository.NewMunicipioRepository(db)
     municipioHandler := handlers.NewMunicipioHandler(municipioRepo)
+    paisRepo := repository.NewPaisRepository(db)
+    paisHandler := handlers.NewPaisHandler(paisRepo)
 
     r := mux.NewRouter()
     
@@ -48,6 +50,7 @@ func main() {
     r.HandleFunc("/api/users/password", userHandler.UpdateUserPassword).Methods("PUT", "OPTIONS")
     r.HandleFunc("/api/municipios", municipioHandler.GetAllMunicipios).Methods("GET", "OPTIONS")
     r.HandleFunc("/api/ufs", municipioHandler.GetAllUFs).Methods("GET", "OPTIONS")
+    r.HandleFunc("/api/paises", paisHandler.GetAllPaises).Methods("GET", "OPTIONS")
     
     log.Println("Servidor rodando na porta 8080")
     log.Fatal(http.ListenAndServe(":8080", r))

@@ -69,6 +69,10 @@ const CadastroEnvolvidos = () => {
   const [ufs, setUfs] = useState<{ uf: string }[]>([]);
   // Estado para controlar o carregamento das UFs
   const [ufsLoading, setUfsLoading] = useState(false);
+  // Estado para armazenar a lista de países
+  const [paises, setPaises] = useState<{ nome_pais: string }[]>([]);
+  // Estado para controlar o carregamento dos países
+  const [paisesLoading, setPaisesLoading] = useState(false);
 
   // Estado para os dados do formulário
   const [formData, setFormData] = useState({
@@ -172,10 +176,39 @@ const CadastroEnvolvidos = () => {
     }
   };
 
-  // Carregar municípios e UFs quando o componente montar
+  // Função para buscar países
+  const fetchPaises = async () => {
+    setPaisesLoading(true);
+    try {
+      const response = await fetch('http://localhost:8080/api/paises', {
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao carregar países');
+      }
+
+      const data = await response.json();
+      setPaises(data);
+    } catch (error) {
+      console.error('Erro ao buscar países:', error);
+      setAlert({
+        open: true,
+        message: 'Erro ao carregar lista de países.',
+        severity: 'error'
+      });
+    } finally {
+      setPaisesLoading(false);
+    }
+  };
+
+  // Carregar municípios, UFs e países quando o componente montar
   useEffect(() => {
     fetchMunicipios();
     fetchUFs();
+    fetchPaises();
   }, []);
 
   // Função para validar o CPF (apenas verificação de 11 dígitos)
@@ -417,12 +450,29 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
+                  select
                   label="Nacionalidade"
                   name="nacionalidade"
                   value={formData.nacionalidade}
                   onChange={handleChange}
                   variant="outlined"
-                />
+                  disabled={paisesLoading}
+                  SelectProps={{
+                    MenuProps: {
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {paises.map((option) => (
+                    <MenuItem key={option.nome_pais} value={option.nome_pais}>
+                      {option.nome_pais}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
