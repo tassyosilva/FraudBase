@@ -29,7 +29,6 @@ func main() {
         log.Fatal(err)
     }
     defer db.Close()
-    
     userRepo := repository.NewUserRepository(db)
     authHandler := handlers.NewAuthHandler(userRepo)
     userHandler := handlers.NewUserHandler(userRepo)
@@ -43,6 +42,8 @@ func main() {
     bancoHandler := handlers.NewBancoHandler(bancoRepo)
     envolvidoRepo := repository.NewEnvolvidoRepository(db)
     envolvidoHandler := handlers.NewEnvolvidoHandler(envolvidoRepo)
+    consultaRepo := repository.NewConsultaRepository(db)
+    consultaHandler := handlers.NewConsultaEnvolvidoHandler(consultaRepo)
     
     r := mux.NewRouter()
     
@@ -70,7 +71,8 @@ func main() {
     apiRouter.HandleFunc("/delegacias", delegaciaHandler.GetAllDelegacias).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/bancos", bancoHandler.GetAllBancos).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/envolvidos", envolvidoHandler.CreateEnvolvido).Methods("POST", "OPTIONS")
-    
+    apiRouter.HandleFunc("/consulta-envolvidos", consultaHandler.GetEnvolvidos).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/consulta-envolvidos/{id}", consultaHandler.GetEnvolvidoById).Methods("GET", "OPTIONS")
     // Rotas que exigem privilégios de administrador (se necessário)
     // adminRouter := apiRouter.PathPrefix("/admin").Subrouter()
     // adminRouter.Use(middleware.AdminOnly)

@@ -8,6 +8,7 @@ import UsersList from './components/UsersList'
 import UserRegister from './components/UserRegister'
 import { darkTheme } from './theme/darkTheme'
 import CadastroEnvolvidos from './components/CadastroEnvolvidos'
+import ConsultaEnvolvidos from './components/ConsultaEnvolvidos'
 
 function App() {
   return (
@@ -21,10 +22,12 @@ function App() {
             <Route path="/settings/users" element={<UsersList />} />
             <Route path="/settings/register" element={<UserRegister />} />
             <Route path="/cadastro-envolvidos" element={<CadastroEnvolvidos />} />
+            <Route path="/consulta-envolvidos" element={<ConsultaEnvolvidos />} />
           </Route>
         </Routes>
       </Router>
     </ThemeProvider>
   )
 }
+
 export default App

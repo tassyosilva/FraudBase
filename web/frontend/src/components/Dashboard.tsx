@@ -47,9 +47,10 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 interface DashboardProps {
   children: React.ReactNode;
+  menu?: React.ReactNode; // Opcional
 }
 
-export default function Dashboard({ children }: DashboardProps) {
+export default function Dashboard({ children, menu }: DashboardProps) {
   // const navigate = useNavigate();
   
   const handleLogout = () => {
@@ -96,16 +97,9 @@ export default function Dashboard({ children }: DashboardProps) {
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent">
-        <Toolbar
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            px: [1],
-          }}
-        />
+        <Toolbar />
         <Divider sx={{ borderColor: 'primary.main' }} />
-        {children}
+        {menu || children}
       </Drawer>
       <Box
         component="main"
