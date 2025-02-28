@@ -4,6 +4,11 @@ Repositório: https://github.com/tassyosilva/FraudBase
 
 ## Implementação Atual
 - Sistema de login com autenticação PostgreSQL
+- Implementação de autenticação JWT para APIs:
+  - Endpoint de login que verifica credenciais no PostgreSQL e retorna token JWT
+  - Middleware que protege rotas da API verificando token JWT
+  - Separação de rotas públicas e protegidas
+  - Middleware de controle de acesso para rotas administrativas
 - Credenciais admin atuais: admin/admin
 - Layout do Dashboard com tema escuro MUI
 - Rotas protegidas com armazenamento de sessão
@@ -64,6 +69,8 @@ Repositório: https://github.com/tassyosilva/FraudBase
 - Database: config.go (conexão PostgreSQL)
 - Models: user.go (estrutura do usuário)
 - Main: middleware CORS e configuração de rotas
+- Auth: jwt.go (geração e validação de tokens JWT)
+- Middleware: auth.go (proteção de rotas com JWT)
 
 ## Arquitetura do Frontend
 - Estrutura de Layout em camadas:
@@ -77,6 +84,10 @@ Repositório: https://github.com/tassyosilva/FraudBase
     - Gerencia navegação entre rotas
 
 ## Última Implementação
+- Adicionada autenticação JWT para APIs:
+  - Endpoint de login que retorna token JWT
+  - Middleware de proteção para rotas da API
+  - Separação entre rotas públicas e rotas que necessitam de autenticação
 - Finalizado formulário de cadastro de envolvidos com todas as validações
 - Implementada integração do formulário com a tabela tabela_estelionato no backend
 - Adicionados campos select com carregamento dinâmico de dados do banco
@@ -90,6 +101,8 @@ Repositório: https://github.com/tassyosilva/FraudBase
 ## Estrutura de Diretórios Atual
 /projeto-go
   /internal
+    /auth
+      └── jwt.go
     /database
       └── config.go
     /handlers
@@ -102,6 +115,8 @@ Repositório: https://github.com/tassyosilva/FraudBase
       ├── municipio_handler.go
       ├── pais_handler.go
       └── user_handler.go
+    /middleware
+      └── auth.go
     /models
       ├── fraud.go
       └── user.go
