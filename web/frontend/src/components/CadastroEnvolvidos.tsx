@@ -44,18 +44,6 @@ const naturezaOptions = [
   { value: 'Outros', label: 'Outros' }
 ];
 
-// Opções para instituições bancárias
-const instituicoesBancarias = [
-  { value: 'Banco do Brasil', label: 'Banco do Brasil' },
-  { value: 'Caixa Econômica', label: 'Caixa Econômica' },
-  { value: 'Bradesco', label: 'Bradesco' },
-  { value: 'Itaú', label: 'Itaú' },
-  { value: 'Santander', label: 'Santander' },
-  { value: 'Nubank', label: 'Nubank' },
-  { value: 'Inter', label: 'Inter' },
-  { value: 'Outros', label: 'Outros' }
-];
-
 const CadastroEnvolvidos = () => {
   // Estado para controlar os painéis expandidos do Accordion
   const [expanded, setExpanded] = useState<string | false>('panel1');
@@ -77,6 +65,10 @@ const CadastroEnvolvidos = () => {
   const [delegacias, setDelegacias] = useState<{ nome: string }[]>([]);
   // Estado para controlar o carregamento das delegacias
   const [delegaciasLoading, setDelegaciasLoading] = useState(false);
+  // Estado para armazenar a lista de bancos
+  const [bancos, setBancos] = useState<{ nome_completo: string }[]>([]);
+  // Estado para controlar o carregamento dos bancos
+  const [bancosLoading, setBancosLoading] = useState(false);
 
   // Estado para os dados do formulário
   const [formData, setFormData] = useState({
@@ -236,12 +228,41 @@ const CadastroEnvolvidos = () => {
     }
   };
 
-  // Carregar municípios, UFs, países e delegacias quando o componente montar
+  // Função para buscar bancos
+  const fetchBancos = async () => {
+    setBancosLoading(true);
+    try {
+      const response = await fetch('http://localhost:8080/api/bancos', {
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao carregar bancos');
+      }
+
+      const data = await response.json();
+      setBancos(data);
+    } catch (error) {
+      console.error('Erro ao buscar bancos:', error);
+      setAlert({
+        open: true,
+        message: 'Erro ao carregar lista de bancos.',
+        severity: 'error'
+      });
+    } finally {
+      setBancosLoading(false);
+    }
+  };
+
+  // Carregar municípios, UFs, países, delegacias e bancos quando o componente montar
   useEffect(() => {
     fetchMunicipios();
     fetchUFs();
     fetchPaises();
     fetchDelegacias();
+    fetchBancos();
   }, []);
 
   // Função para validar o CPF (apenas verificação de 11 dígitos)
@@ -851,10 +872,20 @@ const CadastroEnvolvidos = () => {
                   value={formData.instituicao_bancaria}
                   onChange={handleChange}
                   variant="outlined"
+                  disabled={bancosLoading}
+                  SelectProps={{
+                    MenuProps: {
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                        },
+                      },
+                    },
+                  }}
                 >
-                  {instituicoesBancarias.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
+                  {bancos.map((option) => (
+                    <MenuItem key={option.nome_completo} value={option.nome_completo}>
+                      {option.nome_completo}
                     </MenuItem>
                   ))}
                 </TextField>
