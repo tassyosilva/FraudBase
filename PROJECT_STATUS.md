@@ -14,7 +14,7 @@ Repositório: https://github.com/tassyosilva/FraudBase
 - Listagem de usuários implementada
 - Menu lateral fixo para navegação constante
 - Funcionalidade de logout implementada corretamente
-- Início da implementação do formulário de cadastro de envolvidos
+- Formulário de cadastro de envolvidos implementado e totalmente integrado ao backend
 
 ## Componentes Criados
 - SignIn (com validação de formulário e autenticação no banco)
@@ -38,7 +38,9 @@ Repositório: https://github.com/tassyosilva/FraudBase
   - Implementa formatação automática para CPF (123.456.789-00)
   - Implementa formatação automática para telefone (95)99139-9001
   - Organiza os dados em seções lógicas (Dados do Envolvido, Dados do Fato, etc.)
-  - Estruturado para interagir com a tabela tabela_estelionato
+  - Campos select dinâmicos integrados com dados do banco (Nacionalidade, Município, etc.)
+  - Conversão automática de formato de datas (YYYY-MM-DD para DD/MM/YYYY)
+  - Integração completa com backend para salvar dados na tabela_estelionato
 
 ## Estrutura do Banco de Dados
 - Banco: estelionato
@@ -50,10 +52,15 @@ Repositório: https://github.com/tassyosilva/FraudBase
   - municipios_e_estados: "codigo_municipio_ibge","municipio","uf"
   - paises: "codigo_pais_ison3","codigo_pais_isoa3","nome_pais"
 
+- Como os handlers estão estruturados no projeto:
+  1. Os handlers são organizados em structs que recebem repositórios como dependências
+  2. Operações de banco de dados são encapsuladas em repositórios (internal/repository)
+  3. O padrão de resposta HTTP inclui cabeçalhos Content-Type e codificação JSON
+  4. Há tratamento de erros com mensagens apropriadas e códigos HTTP
 
 ## Estrutura do Backend
-- Handlers: auth.go (tratamento de login), user_handler.go (gerenciamento de usuários)
-- Repository: user_repository.go (operações no banco)
+- Handlers: auth.go (tratamento de login), user_handler.go (gerenciamento de usuários), delegacia_handler.go, pais_handler.go, envolvido_handler.go
+- Repository: user_repository.go, delegacia_repository.go, pais_repository.go, estelionato_repository.go
 - Database: config.go (conexão PostgreSQL)
 - Models: user.go (estrutura do usuário)
 - Main: middleware CORS e configuração de rotas
@@ -70,16 +77,15 @@ Repositório: https://github.com/tassyosilva/FraudBase
     - Gerencia navegação entre rotas
 
 ## Última Implementação
-- Corrigido problema de logout que não encerrava completamente a sessão
-- Iniciado desenvolvimento do formulário de cadastro de envolvidos
-- Implementado layout organizado com Accordion para o formulário
-- Adicionada formatação automática para campos CPF e telefone
-- Estruturado o formulário para interação com a tabela tabela_estelionato
-- Adicionado validações básicas para o formulário
+- Finalizado formulário de cadastro de envolvidos com todas as validações
+- Implementada integração do formulário com a tabela tabela_estelionato no backend
+- Adicionados campos select com carregamento dinâmico de dados do banco
+- Implementada formatação de datas para o padrão brasileiro (DD/MM/YYYY)
+- Criados novos repositórios e handlers para suporte às funcionalidades implementadas
+- Estabelecido padrão de estrutura para handlers e repositórios
 
 ## Implementação em Andamento
-- Formulário de cadastro de envolvidos
-- Integração com backend para tabela tabela_estelionato
+- Página de consulta no banco de dados dos envolvidos cadastrados
 
 ## Estrutura de Diretórios Atual
 /projeto-go
@@ -88,12 +94,23 @@ Repositório: https://github.com/tassyosilva/FraudBase
       └── config.go
     /handlers
       ├── auth.go
+      ├── banco_handler.go
       ├── dashboard.go
+      ├── delegacia_handler.go
+      ├── envolvido_handler.go
+      ├── middlewares.go
+      ├── municipio_handler.go
+      ├── pais_handler.go
       └── user_handler.go
     /models
       ├── fraud.go
       └── user.go
     /repository
+      ├── banco_repository.go
+      ├── delegacia_repository.go
+      ├── estelionato_repository.go
+      ├── municipio_repository.go
+      ├── pais_repository.go
       └── user_repository.go
   /web
     /frontend
@@ -117,11 +134,9 @@ Repositório: https://github.com/tassyosilva/FraudBase
           └── User.ts
         ├── App.tsx
         └── main.tsx
+
 ## Próximos Passos
-- Finalizar formulário de cadastro de envolvidos com validações adicionais
-- Criar modelos e repositories no backend para tabela tabela_estelionato
-- Implementar API REST para cadastro de envolvidos no backend
-- Integrar o formulário frontend com o backend
+- Criar página de consulta de envolvidos cadastrados
 - Implementar listagem dos envolvidos cadastrados
 - Adicionar funcionalidades de edição e exclusão de envolvidos
 - Implementar alteração de senha para usuários
