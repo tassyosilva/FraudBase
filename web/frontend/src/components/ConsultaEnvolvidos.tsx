@@ -83,13 +83,13 @@ const ConsultaEnvolvidos = () => {
 
   // Estado para a lista de envolvidos
   const [envolvidos, setEnvolvidos] = useState<Envolvido[]>([]);
-  
+
   // Estado para o envolvido selecionado para visualização detalhada
   const [selectedEnvolvido, setSelectedEnvolvido] = useState<Envolvido | null>(null);
-  
+
   // Estado para controlar o loading
   const [loading, setLoading] = useState(false);
-  
+
   // Estado para mensagens de sucesso ou erro
   const [alert, setAlert] = useState({
     open: false,
@@ -117,11 +117,18 @@ const ConsultaEnvolvidos = () => {
   const handleSearch = async () => {
     setLoading(true);
     try {
-      // Construir query string com os filtros
+      // Sanitizando os filtros para evitar problemas com caracteres especiais
+      const sanitizedFilters = {
+        nome: filters.nome ? filters.nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
+        cpf: filters.cpf ? filters.cpf.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
+        bo: filters.bo ? filters.bo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : ''
+      };
+
+      // Construir query string com os filtros sanitizados
       const queryParams = new URLSearchParams();
-      if (filters.nome) queryParams.append('nome', filters.nome);
-      if (filters.cpf) queryParams.append('cpf', filters.cpf);
-      if (filters.bo) queryParams.append('bo', filters.bo);
+      if (sanitizedFilters.nome) queryParams.append('nome', sanitizedFilters.nome);
+      if (sanitizedFilters.cpf) queryParams.append('cpf', sanitizedFilters.cpf);
+      if (sanitizedFilters.bo) queryParams.append('bo', sanitizedFilters.bo);
 
       const response = await fetch(`http://localhost:8080/api/consulta-envolvidos?${queryParams.toString()}`, {
         headers: {
@@ -134,9 +141,11 @@ const ConsultaEnvolvidos = () => {
       }
 
       const data = await response.json();
-      setEnvolvidos(data);
-      
-      if (data.length === 0) {
+      // Garantir que data é sempre um array
+      const resultArray = Array.isArray(data) ? data : [];
+      setEnvolvidos(resultArray);
+
+      if (resultArray.length === 0) {
         setAlert({
           open: true,
           message: 'Nenhum resultado encontrado para os filtros informados.',
@@ -145,12 +154,14 @@ const ConsultaEnvolvidos = () => {
       } else {
         setAlert({
           open: true,
-          message: `${data.length} resultado(s) encontrado(s).`,
+          message: `${resultArray.length} resultado(s) encontrado(s).`,
           severity: 'success'
         });
       }
     } catch (error) {
       console.error('Erro ao buscar envolvidos:', error);
+      // Importante: definir envolvidos como array vazio em caso de erro
+      setEnvolvidos([]);
       setAlert({
         open: true,
         message: 'Erro ao buscar envolvidos. Tente novamente.',
@@ -214,10 +225,10 @@ const ConsultaEnvolvidos = () => {
   // Formatar data para exibição (YYYY-MM-DD para DD/MM/YYYY)
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
-    
+
     // Se já estiver no formato brasileiro, retorna como está
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return dateString;
-    
+
     // Converte de YYYY-MM-DD para DD/MM/YYYY
     const [year, month, day] = dateString.split('-');
     if (year && month && day) {
@@ -312,14 +323,14 @@ const ConsultaEnvolvidos = () => {
                   <CircularProgress />
                 </TableCell>
               </TableRow>
-            ) : envolvidos.length === 0 ? (
+            ) : !envolvidos || envolvidos.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} align="center">
                   Nenhum resultado encontrado
                 </TableCell>
               </TableRow>
             ) : (
-              envolvidos
+              (envolvidos || [])
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((envolvido) => (
                   <TableRow key={envolvido.id} hover>
@@ -331,8 +342,8 @@ const ConsultaEnvolvidos = () => {
                     <TableCell>{formatDate(envolvido.data_fato)}</TableCell>
                     <TableCell>{envolvido.natureza}</TableCell>
                     <TableCell>
-                      <IconButton 
-                        size="small" 
+                      <IconButton
+                        size="small"
                         onClick={() => handleLoadDetails(envolvido.id)}
                         color="primary"
                       >
@@ -350,7 +361,7 @@ const ConsultaEnvolvidos = () => {
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={envolvidos.length}
+        count={envolvidos ? envolvidos.length : 0}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
@@ -403,127 +414,126 @@ const ConsultaEnvolvidos = () => {
                 <Typography variant="body1" gutterBottom>{selectedEnvolvido.uf_envolvido}</Typography>
               </Grid>
               <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Sexo:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.sexo_envolvido}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Telefone:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.telefone_envolvido}</Typography>
-                            </Grid>
+                <Typography variant="subtitle2">Sexo:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.sexo_envolvido}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Telefone:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.telefone_envolvido}</Typography>
+              </Grid>
 
-                            <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Dados da Ocorrência</Typography>
-                                <Divider sx={{ mb: 2 }} />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Número do BO:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numero_do_bo}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Tipo de Envolvido:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.tipo_envolvido}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Data do Fato:</Typography>
-                                <Typography variant="body1" gutterBottom>{formatDate(selectedEnvolvido.data_fato)}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Natureza:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.natureza}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Situação:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.situacao}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Delegacia Responsável:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.delegacia_responsavel}</Typography>
-                            </Grid>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Dados da Ocorrência</Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Número do BO:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numero_do_bo}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Tipo de Envolvido:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.tipo_envolvido}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Data do Fato:</Typography>
+                <Typography variant="body1" gutterBottom>{formatDate(selectedEnvolvido.data_fato)}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Natureza:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.natureza}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Situação:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.situacao}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Delegacia Responsável:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.delegacia_responsavel}</Typography>
+              </Grid>
 
-                            <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Local do Fato</Typography>
-                                <Divider sx={{ mb: 2 }} />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">CEP:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.cep_fato}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Logradouro:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.logradouro_fato}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Número:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numerocasa_fato}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Bairro:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.bairro_fato}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Município:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.municipio_fato}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">País:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.pais_fato}</Typography>
-                            </Grid>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Local do Fato</Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">CEP:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.cep_fato}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Logradouro:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.logradouro_fato}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Número:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numerocasa_fato}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Bairro:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.bairro_fato}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Município:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.municipio_fato}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">País:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.pais_fato}</Typography>
+              </Grid>
 
-                            <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Dados Financeiros</Typography>
-                                <Divider sx={{ mb: 2 }} />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Instituição Bancária:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.instituicao_bancaria}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Valor:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.valor}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">PIX Utilizado:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.pix_utilizado}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Número da Conta:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numero_conta_bancaria}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Número da Agência:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numero_agencia_bancaria}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2">Cartão:</Typography>
-                                <Typography variant="body1" gutterBottom>{selectedEnvolvido.cartao}</Typography>
-                            </Grid>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Dados Financeiros</Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Instituição Bancária:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.instituicao_bancaria}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Valor:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.valor}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">PIX Utilizado:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.pix_utilizado}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Número da Conta:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numero_conta_bancaria}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Número da Agência:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numero_agencia_bancaria}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2">Cartão:</Typography>
+                <Typography variant="body1" gutterBottom>{selectedEnvolvido.cartao}</Typography>
+              </Grid>
 
-                            <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Relato</Typography>
-                                <Divider sx={{ mb: 2 }} />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Typography variant="body1">{selectedEnvolvido.relato_historico}</Typography>
-                            </Grid>
-                        </Grid>
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDetailsModal} color="primary">
-                        Fechar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Relato</Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="body1">{selectedEnvolvido.relato_historico}</Typography>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDetailsModal} color="primary">
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-            {/* Snackbar para alertas */}
-            <Snackbar open={alert.open} autoHideDuration={6000} onClose={handleCloseAlert}>
-                <Alert onClose={handleCloseAlert} severity={alert.severity}>
-                    {alert.message}
-                </Alert>
-            </Snackbar>
-        </Paper>
-    );
+      {/* Snackbar para alertas */}
+      <Snackbar open={alert.open} autoHideDuration={6000} onClose={handleCloseAlert}>
+        <Alert onClose={handleCloseAlert} severity={alert.severity}>
+          {alert.message}
+        </Alert>
+      </Snackbar>
+    </Paper>
+  );
 };
 
 export default ConsultaEnvolvidos;
-
