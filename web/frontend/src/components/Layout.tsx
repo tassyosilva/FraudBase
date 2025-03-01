@@ -1,4 +1,4 @@
-import { useState, ReactNode } from 'react';
+import { useState, ReactNode, useEffect } from 'react';
 import { List, ListItemButton, ListItemIcon, ListItemText, Collapse } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -16,16 +16,25 @@ interface MenuItem {
     text: string;
     path: string;
   }[];
+  adminOnly?: boolean; // Propriedade para marcar itens apenas para administradores
 }
 
 interface LayoutProps {
-  children?: ReactNode; // Adicionando o '?' para tornar opcional
+  children?: ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
 
+  // Verificar se o usuário é administrador ao carregar o componente
+  useEffect(() => {
+    const adminStatus = sessionStorage.getItem('isAdmin');
+    setIsAdmin(adminStatus === 'true');
+  }, []);
+
+  // Definir os itens do menu
   const menuItems: MenuItem[] = [
     {
       text: 'Dashboard',
@@ -45,6 +54,7 @@ export default function Layout({ children }: LayoutProps) {
     {
       text: 'Configurações',
       icon: <SettingsIcon sx={{ color: 'gold' }} />,
+      adminOnly: true, // Marcar como apenas para administradores
       subItems: [
         {
           text: 'Usuários',
@@ -58,6 +68,9 @@ export default function Layout({ children }: LayoutProps) {
     }
   ];
 
+  // Filtrar os itens do menu com base no status de administrador
+  const filteredMenuItems = menuItems.filter(item => !item.adminOnly || isAdmin);
+
   const handleClick = (item: MenuItem) => {
     if (item.subItems) {
       setOpen(!open);
@@ -69,7 +82,7 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <Dashboard menu={
       <List component="nav">
-        {menuItems.map((item, index) => (
+        {filteredMenuItems.map((item, index) => (
           <div key={index}>
             <ListItemButton onClick={() => handleClick(item)}>
               <ListItemIcon>{item.icon}</ListItemIcon>
@@ -95,7 +108,7 @@ export default function Layout({ children }: LayoutProps) {
         ))}
       </List>
     }>
-      {children} {/* Isso é seguro mesmo se children for undefined */}
+      {children}
     </Dashboard>
   );
 }

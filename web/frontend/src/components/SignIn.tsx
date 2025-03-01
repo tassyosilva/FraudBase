@@ -23,9 +23,9 @@ export default function SignIn() {
       username: data.get('email'),
       password: data.get('password'),
     };
-    
+
     console.log('Sending login request:', loginData);
-    
+
     try {
       const response = await fetch('http://localhost:8080/api/login', {
         method: 'POST',
@@ -36,17 +36,18 @@ export default function SignIn() {
       });
 
       console.log('Response status:', response.status);
-      
+
       if (!response.ok) {
         throw new Error('Credenciais inválidas');
       }
 
       const result = await response.json();
-      
+
       sessionStorage.setItem('isAuthenticated', 'true');
-      sessionStorage.setItem('isAdmin', result.isAdmin);
+      // Garantindo que isAdmin seja convertido para string
+      sessionStorage.setItem('isAdmin', result.isAdmin.toString());
       sessionStorage.setItem('token', result.token);
-      
+
       navigate('/dashboard');
     } catch (err) {
       setError('Usuário ou senha inválidos');
@@ -57,7 +58,7 @@ export default function SignIn() {
     <ThemeProvider theme={darkTheme}>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
-        <Paper 
+        <Paper
           elevation={3}
           sx={{
             marginTop: 8,
@@ -86,7 +87,7 @@ export default function SignIn() {
               autoComplete="email"
               autoFocus
               variant="outlined"
-              sx={{ 
+              sx={{
                 input: { color: 'white' },
                 label: { color: 'white' },
                 '& .MuiOutlinedInput-root': {
@@ -113,7 +114,7 @@ export default function SignIn() {
               id="password"
               autoComplete="current-password"
               variant="outlined"
-              sx={{ 
+              sx={{
                 input: { color: 'white' },
                 label: { color: 'white' },
                 '& .MuiOutlinedInput-root': {
@@ -134,8 +135,8 @@ export default function SignIn() {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ 
-                mt: 3, 
+              sx={{
+                mt: 3,
                 mb: 2,
                 py: 1.5,
                 fontSize: '1rem',
