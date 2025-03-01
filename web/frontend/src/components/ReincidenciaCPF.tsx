@@ -9,7 +9,18 @@ import {
   Grid,
   Pagination,
   Chip,
-  Divider
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material';
 import {
   BarChart,
@@ -25,6 +36,9 @@ import PersonIcon from '@mui/icons-material/Person';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+// Correção da importação
+import { usePDF } from 'react-to-pdf';
 
 // Interface para os dados de reincidência
 interface ReincidenciaData {
@@ -44,12 +58,26 @@ interface PaginatedResponse {
 }
 
 const ReincidenciaCPF = () => {
-  // Inicialize data como um array vazio, não como null
+  // Estados existentes
   const [data, setData] = useState<ReincidenciaData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+
+  // Novos estados para o modal e infrator selecionado
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [selectedInfrator, setSelectedInfrator] = useState<ReincidenciaData | null>(null);
+
+  // Hook para geração de PDF
+  const { toPDF, targetRef } = usePDF({
+    filename: 'relatorio-reincidencia.pdf',
+    format: 'a4',
+    page: {
+      margin: 10,
+      orientation: 'portrait'
+    }
+  });
 
   // Função para formatar CPF (adiciona pontos e traço)
   const formatCPF = (cpf: string) => {
@@ -82,12 +110,10 @@ const ReincidenciaCPF = () => {
 
       const result: PaginatedResponse = await response.json();
 
-      // Verifique se result.data existe antes de atribuir
       if (result && result.data) {
         setData(result.data);
         setTotalPages(result.totalPages || 1);
       } else {
-        // Se result.data não existir, defina um array vazio
         setData([]);
         setTotalPages(1);
         setError('Nenhum dado encontrado');
@@ -95,7 +121,6 @@ const ReincidenciaCPF = () => {
     } catch (err) {
       console.error('Erro ao buscar dados:', err);
       setError('Erro ao carregar dados de reincidência por CPF');
-      // Importante: resetar data para um array vazio em caso de erro
       setData([]);
     } finally {
       setLoading(false);
@@ -110,6 +135,23 @@ const ReincidenciaCPF = () => {
   // Função para lidar com mudança de página
   const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
+  };
+
+  // Nova função para abrir o modal com os detalhes do infrator
+  const handleOpenModal = (infrator: ReincidenciaData) => {
+    setSelectedInfrator(infrator);
+    setModalOpen(true);
+  };
+
+  // Nova função para fechar o modal
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedInfrator(null);
+  };
+
+  // Nova função para exportar como PDF
+  const handleExportPDF = () => {
+    toPDF();
   };
 
   if (loading) {
@@ -141,7 +183,6 @@ const ReincidenciaCPF = () => {
     );
   }
 
-  // Verificar se data existe e tem elementos antes de mapear
   if (!data || data.length === 0) {
     return (
       <Paper sx={{ p: 3, textAlign: 'center' }}>
@@ -152,18 +193,24 @@ const ReincidenciaCPF = () => {
     );
   }
 
-  // Preparar dados para o gráfico (usando os dados da página atual)
+  // Preparar dados para o gráfico
   const chartData = data.map(item => ({
     ...item,
-    cpf: formatCPF(item.cpf), // Formatar CPF para exibição
+    cpf: formatCPF(item.cpf),
     name: item.nomecompleto?.length > 20
       ? `${item.nomecompleto.substring(0, 20)}...`
-      : (item.nomecompleto || 'Nome não informado') // Verificar se o nome existe
+      : (item.nomecompleto || 'Nome não informado')
   }));
+
+  // Dividir a lista de BOs em um array para exibição na tabela
+  const getBOArray = (boString: string) => {
+    if (!boString) return ['Não informado'];
+    return boString.split(', ');
+  };
 
   return (
     <Box>
-      {/* Cabeçalho */}
+      {/* Conteúdo principal - Sem alterações no cabeçalho e no gráfico */}
       <Paper sx={{ p: 3, mb: 3, textAlign: 'center' }}>
         <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'gold', fontWeight: 'medium' }}>
           Reincidência de Infratores por CPF
@@ -173,7 +220,7 @@ const ReincidenciaCPF = () => {
         </Typography>
       </Paper>
 
-      {/* Gráfico */}
+      {/* Gráfico - Sem alterações */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom textAlign="center">
           Top Infratores Reincidentes por CPF
@@ -207,7 +254,7 @@ const ReincidenciaCPF = () => {
         </ResponsiveContainer>
       </Paper>
 
-      {/* Caixas com infratores */}
+      {/* Caixas com infratores - Adicionado onClick para abrir o modal */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">
@@ -225,6 +272,7 @@ const ReincidenciaCPF = () => {
           {data.map((infrator, index) => (
             <Grid item xs={12} md={6} key={index}>
               <Card
+                onClick={() => handleOpenModal(infrator)}
                 sx={{
                   bgcolor: '#2A2A2A',
                   borderLeft: '5px solid #FF8042',
@@ -232,7 +280,8 @@ const ReincidenciaCPF = () => {
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'translateY(-5px)',
-                    boxShadow: '0 10px 20px rgba(0,0,0,0.4)'
+                    boxShadow: '0 10px 20px rgba(0,0,0,0.4)',
+                    cursor: 'pointer'
                   }
                 }}
               >
@@ -286,7 +335,7 @@ const ReincidenciaCPF = () => {
           ))}
         </Grid>
 
-        {/* Paginação */}
+        {/* Paginação - Sem alterações */}
         {totalPages > 1 && (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <Pagination
@@ -308,6 +357,152 @@ const ReincidenciaCPF = () => {
           </Box>
         )}
       </Paper>
+
+      {/* Modal com detalhes completos e opção de exportar PDF */}
+      <Dialog
+        open={modalOpen}
+        onClose={handleCloseModal}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: '#2A2A2A', color: 'gold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            Relatório Detalhado de Reincidência
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<PictureAsPdfIcon />}
+            onClick={handleExportPDF}
+            sx={{
+              bgcolor: 'gold',
+              color: 'black',
+              '&:hover': {
+                bgcolor: '#d4af37',
+              }
+            }}
+          >
+            Exportar PDF
+          </Button>
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: '#2A2A2A', px: 4, py: 3 }}>
+          {selectedInfrator && (
+            <Box ref={targetRef}>
+              {/* Cabeçalho do Relatório para PDF */}
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <Typography variant="h5" sx={{ color: 'gold', fontWeight: 'bold', mb: 1 }}>
+                  RELATÓRIO DE REINCIDÊNCIA
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#ccc' }}>
+                  Sistema FraudBase - Gerado em {new Date().toLocaleString('pt-BR')}
+                </Typography>
+                <Divider sx={{ my: 2, borderColor: 'gold' }} />
+              </Box>
+
+              {/* Informações do Infrator */}
+              <Paper sx={{ p: 3, mb: 3, bgcolor: '#1A1A1A' }}>
+                <Typography variant="h6" sx={{ color: 'gold', mb: 2 }}>
+                  Dados do Infrator
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="body1">
+                      <strong>Nome Completo:</strong> {selectedInfrator.nomecompleto || 'Não informado'}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="body1">
+                      <strong>CPF:</strong> {formatCPF(selectedInfrator.cpf)}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="body1">
+                      <strong>Total de Ocorrências:</strong> {selectedInfrator.quantidade}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Tabela de Boletins de Ocorrência */}
+              <Paper sx={{ p: 3, mb: 3, bgcolor: '#1A1A1A' }}>
+                <Typography variant="h6" sx={{ color: 'gold', mb: 2 }}>
+                  Boletins de Ocorrência Registrados
+                </Typography>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ color: 'gold', fontWeight: 'bold' }}>#</TableCell>
+                        <TableCell sx={{ color: 'gold', fontWeight: 'bold' }}>Número do BO</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {getBOArray(selectedInfrator.numeros_do_bo).map((bo, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{bo}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+
+              {/* Análise de Risco */}
+              <Paper sx={{ p: 3, mb: 3, bgcolor: '#1A1A1A' }}>
+                <Typography variant="h6" sx={{ color: 'gold', mb: 2 }}>
+                  Análise de Risco
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Box sx={{
+                      p: 2,
+                      borderRadius: 1,
+                      bgcolor: selectedInfrator.quantidade > 5 ? 'rgba(220, 53, 69, 0.2)' :
+                        selectedInfrator.quantidade > 3 ? 'rgba(255, 193, 7, 0.2)' :
+                          'rgba(40, 167, 69, 0.2)',
+                      borderLeft: `4px solid ${selectedInfrator.quantidade > 5 ? '#dc3545' :
+                        selectedInfrator.quantidade > 3 ? '#ffc107' :
+                          '#28a745'
+                        }`
+                    }}>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                        Nível de Reincidência: {
+                          selectedInfrator.quantidade > 5 ? 'ALTO' :
+                            selectedInfrator.quantidade > 3 ? 'MÉDIO' :
+                              'BAIXO'
+                        }
+                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        {
+                          selectedInfrator.quantidade > 5 ? 'Infrator com alto índice de reincidência. Recomenda-se atenção especial.' :
+                            selectedInfrator.quantidade > 3 ? 'Infrator com reincidência moderada. Observe com cuidado.' :
+                              'Infrator com baixa reincidência, mas já demonstra padrão repetitivo.'
+                        }
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Observações */}
+              <Paper sx={{ p: 3, bgcolor: '#1A1A1A' }}>
+                <Typography variant="h6" sx={{ color: 'gold', mb: 2 }}>
+                  Observações
+                </Typography>
+                <Typography variant="body2">
+                  Este relatório apresenta o histórico condensado de reincidência do infrator. Para mais detalhes sobre cada ocorrência,
+                  consulte os boletins de ocorrência individuais no sistema.
+                </Typography>
+              </Paper>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: '#2A2A2A' }}>
+          <Button onClick={handleCloseModal} sx={{ color: 'white' }}>
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
