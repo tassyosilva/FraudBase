@@ -111,3 +111,22 @@ func (h *DashboardStatsHandler) GetQuantidadeVitimas(w http.ResponseWriter, r *h
 		return
 	}
 }
+
+// GetInfratoresPorDelegacia retorna estatísticas de infratores por delegacia responsável
+func (h *DashboardStatsHandler) GetInfratoresPorDelegacia(w http.ResponseWriter, r *http.Request) {
+    log.Println("Recebida requisição para estatísticas de infratores por delegacia")
+
+    stats, err := h.dashRepo.GetInfratoresPorDelegacia()
+    if err != nil {
+        log.Printf("Erro ao buscar estatísticas de infratores por delegacia: %v", err)
+        http.Error(w, "Erro ao buscar estatísticas", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    if err := json.NewEncoder(w).Encode(stats); err != nil {
+        log.Printf("Erro ao codificar resposta JSON: %v", err)
+        http.Error(w, "Erro interno do servidor", http.StatusInternalServerError)
+        return
+    }
+}

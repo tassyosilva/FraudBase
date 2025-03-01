@@ -80,6 +80,7 @@ func main() {
     apiRouter.HandleFunc("/dashboard/quantidade-bos", dashboardStatsHandler.GetQuantidadeBOs).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/dashboard/quantidade-infratores", dashboardStatsHandler.GetQuantidadeInfratores).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/dashboard/quantidade-vitimas", dashboardStatsHandler.GetQuantidadeVitimas).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/dashboard/infratores-por-delegacia", dashboardStatsHandler.GetInfratoresPorDelegacia).Methods("GET", "OPTIONS")
     // adminRouter := apiRouter.PathPrefix("/admin").Subrouter()
     // adminRouter.Use(middleware.AdminOnly)
     // ... rotas de admin

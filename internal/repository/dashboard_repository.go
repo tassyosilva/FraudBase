@@ -179,3 +179,47 @@ func (r *DashboardRepository) GetQuantidadeVitimas() (CountStats, error) {
 
 	return stats, nil
 }
+
+// InfratoresPorDelegaciaStats representa estatísticas de infratores por delegacia
+type InfratoresPorDelegaciaStats struct {
+    DelegaciaResponsavel string `json:"delegacia_responsavel"`
+    Quantidade          int    `json:"quantidade"`
+}
+
+// GetInfratoresPorDelegacia retorna estatísticas de infratores por delegacia responsável
+func (r *DashboardRepository) GetInfratoresPorDelegacia() ([]InfratoresPorDelegaciaStats, error) {
+    query := `
+        SELECT 
+            delegacia_responsavel, 
+            COUNT(*) AS quantidade
+        FROM 
+            tabela_estelionato
+        WHERE 
+            tipo_envolvido = 'Suposto Autor/infrator'
+            AND delegacia_responsavel != ''
+        GROUP BY 
+            delegacia_responsavel
+        ORDER BY 
+            quantidade DESC
+        LIMIT 5;
+    `
+
+    rows, err := r.db.Query(query)
+    if err != nil {
+        log.Printf("Erro ao consultar infratores por delegacia: %v", err)
+        return nil, err
+    }
+    defer rows.Close()
+
+    var stats []InfratoresPorDelegaciaStats
+    for rows.Next() {
+        var stat InfratoresPorDelegaciaStats
+        if err := rows.Scan(&stat.DelegaciaResponsavel, &stat.Quantidade); err != nil {
+            log.Printf("Erro ao processar resultado: %v", err)
+            return nil, err
+        }
+        stats = append(stats, stat)
+    }
+
+    return stats, nil
+}

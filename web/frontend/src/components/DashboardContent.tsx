@@ -1,25 +1,25 @@
 import { useEffect, useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Grid, 
-  Card, 
-  CardContent, 
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
   CircularProgress
 } from '@mui/material';
-import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  ResponsiveContainer, 
-  Legend, 
-  Tooltip, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid 
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid
 } from 'recharts';
 import logo from '../assets/logo.png';
 
@@ -34,17 +34,23 @@ interface FaixaEtariaStats {
   quantidade: number;
 }
 
+interface DelegaciaStats {
+  delegacia_responsavel: string;
+  quantidade: number;
+}
+
 interface CountStats {
   quantidade: number;
 }
 
 // Cores para os gráficos
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 const DashboardContent = () => {
   // Estados para armazenar os dados das estatísticas
   const [vitimasPorSexo, setVitimasPorSexo] = useState<SexoStats[]>([]);
   const [vitimasPorFaixaEtaria, setVitimasPorFaixaEtaria] = useState<FaixaEtariaStats[]>([]);
+  const [infratoresPorDelegacia, setInfratoresPorDelegacia] = useState<DelegaciaStats[]>([]);
   const [quantidadeBOs, setQuantidadeBOs] = useState<number>(0);
   const [quantidadeInfratores, setQuantidadeInfratores] = useState<number>(0);
   const [quantidadeVitimas, setQuantidadeVitimas] = useState<number>(0);
@@ -56,7 +62,7 @@ const DashboardContent = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         // Buscar vítimas por sexo
         const resVitimasPorSexo = await fetch('http://localhost:8080/api/dashboard/vitimas-por-sexo', {
@@ -64,48 +70,57 @@ const DashboardContent = () => {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
-        
+
         // Buscar vítimas por faixa etária
         const resVitimasPorFaixaEtaria = await fetch('http://localhost:8080/api/dashboard/vitimas-por-faixa-etaria', {
           headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
-        
+
+        // Buscar infratores por delegacia
+        const resInfratoresPorDelegacia = await fetch('http://localhost:8080/api/dashboard/infratores-por-delegacia', {
+          headers: {
+            'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+          }
+        });
+
         // Buscar quantidade de BOs
         const resQuantidadeBOs = await fetch('http://localhost:8080/api/dashboard/quantidade-bos', {
           headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
-        
+
         // Buscar quantidade de infratores
         const resQuantidadeInfratores = await fetch('http://localhost:8080/api/dashboard/quantidade-infratores', {
           headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
-        
+
         // Buscar quantidade de vítimas
         const resQuantidadeVitimas = await fetch('http://localhost:8080/api/dashboard/quantidade-vitimas', {
           headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
-        
-        if (!resVitimasPorSexo.ok || !resVitimasPorFaixaEtaria.ok || !resQuantidadeBOs.ok || 
-            !resQuantidadeInfratores.ok || !resQuantidadeVitimas.ok) {
+
+        if (!resVitimasPorSexo.ok || !resVitimasPorFaixaEtaria.ok || !resInfratoresPorDelegacia.ok ||
+          !resQuantidadeBOs.ok || !resQuantidadeInfratores.ok || !resQuantidadeVitimas.ok) {
           throw new Error('Erro ao buscar dados para o dashboard');
         }
-        
+
         const dataSexo = await resVitimasPorSexo.json();
         const dataFaixaEtaria = await resVitimasPorFaixaEtaria.json();
+        const dataDelegacia = await resInfratoresPorDelegacia.json();
         const dataBOs = await resQuantidadeBOs.json();
         const dataInfratores = await resQuantidadeInfratores.json();
         const dataVitimas = await resQuantidadeVitimas.json();
-        
+
         setVitimasPorSexo(dataSexo);
         setVitimasPorFaixaEtaria(dataFaixaEtaria);
+        setInfratoresPorDelegacia(dataDelegacia);
         setQuantidadeBOs(dataBOs.quantidade);
         setQuantidadeInfratores(dataInfratores.quantidade);
         setQuantidadeVitimas(dataVitimas.quantidade);
@@ -116,19 +131,19 @@ const DashboardContent = () => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
   if (loading) {
     return (
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          height: '50vh' 
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '50vh'
         }}
       >
         <CircularProgress sx={{ color: 'gold' }} />
@@ -247,16 +262,48 @@ const DashboardContent = () => {
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="faixa_etaria" 
-                  angle={-45} 
-                  textAnchor="end" 
-                  height={60}
-                  interval={0}
+                <XAxis
+                  dataKey="faixa_etaria"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  tick={{ fontSize: 12 }}
                 />
                 <YAxis />
                 <Tooltip formatter={(value) => [`${value} vítimas`, 'Quantidade']} />
-                <Bar dataKey="quantidade" name="Quantidade" fill="#FFD700" />
+                <Legend />
+                <Bar dataKey="quantidade" fill="#8884d8" name="Quantidade de Vítimas" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Paper>
+        </Grid>
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" gutterBottom textAlign="center">
+              Top Delegacias com Mais Infratores Registrados
+            </Typography>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart
+                data={infratoresPorDelegacia}
+                layout="vertical"
+                margin={{
+                  top: 20,
+                  right: 30,
+                  left: 150,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis
+                  dataKey="delegacia_responsavel"
+                  type="category"
+                  tick={{ fontSize: 12 }}
+                  width={140}
+                />
+                <Tooltip formatter={(value) => [`${value} infratores`, 'Quantidade']} />
+                <Legend />
+                <Bar dataKey="quantidade" fill="#FF8042" name="Quantidade de Infratores" />
               </BarChart>
             </ResponsiveContainer>
           </Paper>
