@@ -23,11 +23,11 @@ func NewConsultaRepository(db *sql.DB) *ConsultaRepository {
 }
 
 // FindEnvolvidos busca envolvidos com os filtros especificados
-func (r *ConsultaRepository) FindEnvolvidos(nome, cpf, bo string) ([]models.Envolvido, error) {
+func (r *ConsultaRepository) FindEnvolvidos(nome, cpf, bo, pix string) ([]models.Envolvido, error) {
 	query := `SELECT id, numero_do_bo, tipo_envolvido, nomecompleto, cpf, nomedamae,
-              nascimento, nacionalidade, naturalidade, uf_envolvido, sexo_envolvido,
-              telefone_envolvido, data_fato, delegacia_responsavel, situacao, natureza
-              FROM tabela_estelionato WHERE 1=1`
+	nascimento, nacionalidade, naturalidade, uf_envolvido, sexo_envolvido,
+	telefone_envolvido, data_fato, delegacia_responsavel, situacao, natureza
+	FROM tabela_estelionato WHERE 1=1`
 
 	var params []interface{}
 	var conditions []string
@@ -47,6 +47,13 @@ func (r *ConsultaRepository) FindEnvolvidos(nome, cpf, bo string) ([]models.Envo
 	if bo != "" {
 		conditions = append(conditions, fmt.Sprintf("numero_do_bo LIKE $%d", paramIndex))
 		params = append(params, "%"+bo+"%")
+		paramIndex++
+	}
+	
+	// Adicionar condição para PIX
+	if pix != "" {
+		conditions = append(conditions, fmt.Sprintf("pix_utilizado LIKE $%d", paramIndex))
+		params = append(params, "%"+pix+"%")
 		paramIndex++
 	}
 

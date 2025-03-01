@@ -28,9 +28,10 @@ func (h *ConsultaEnvolvidoHandler) GetEnvolvidos(w http.ResponseWriter, r *http.
 	nome := queryParams.Get("nome")
 	cpf := queryParams.Get("cpf")
 	bo := queryParams.Get("bo")
+	pix := queryParams.Get("pix_utilizado") // Adicionar parâmetro do PIX
 
 	// Buscar envolvidos no repositório
-	envolvidos, err := h.consultaRepo.FindEnvolvidos(nome, cpf, bo)
+	envolvidos, err := h.consultaRepo.FindEnvolvidos(nome, cpf, bo, pix) // Passar o novo parâmetro
 	if err != nil {
 		log.Printf("Erro ao buscar envolvidos: %v", err)
 		http.Error(w, "Erro ao buscar envolvidos", http.StatusInternalServerError)
@@ -45,7 +46,6 @@ func (h *ConsultaEnvolvidoHandler) GetEnvolvidos(w http.ResponseWriter, r *http.
 		return
 	}
 }
-
 // GetEnvolvidoById busca um envolvido específico pelo ID
 func (h *ConsultaEnvolvidoHandler) GetEnvolvidoById(w http.ResponseWriter, r *http.Request) {
 	log.Println("Recebida requisição para buscar detalhes de envolvido")

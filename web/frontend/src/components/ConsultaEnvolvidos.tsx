@@ -78,7 +78,8 @@ const ConsultaEnvolvidos = () => {
   const [filters, setFilters] = useState({
     nome: '',
     cpf: '',
-    bo: ''
+    bo: '',
+    pix: '' // Novo campo para PIX
   });
 
   // Estado para a lista de envolvidos
@@ -121,7 +122,8 @@ const ConsultaEnvolvidos = () => {
       const sanitizedFilters = {
         nome: filters.nome ? filters.nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
         cpf: filters.cpf ? filters.cpf.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
-        bo: filters.bo ? filters.bo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : ''
+        bo: filters.bo ? filters.bo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
+        pix: filters.pix ? filters.pix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '' // Sanitizando o novo campo PIX
       };
 
       // Construir query string com os filtros sanitizados
@@ -129,6 +131,9 @@ const ConsultaEnvolvidos = () => {
       if (sanitizedFilters.nome) queryParams.append('nome', sanitizedFilters.nome);
       if (sanitizedFilters.cpf) queryParams.append('cpf', sanitizedFilters.cpf);
       if (sanitizedFilters.bo) queryParams.append('bo', sanitizedFilters.bo);
+
+      // Alterando o nome do parâmetro para corresponder à coluna no banco de dados
+      if (sanitizedFilters.pix) queryParams.append('pix_utilizado', sanitizedFilters.pix);
 
       const response = await fetch(`http://localhost:8080/api/consulta-envolvidos?${queryParams.toString()}`, {
         headers: {
@@ -246,7 +251,7 @@ const ConsultaEnvolvidos = () => {
       {/* Filtros de busca */}
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <TextField
               fullWidth
               label="Nome"
@@ -257,7 +262,7 @@ const ConsultaEnvolvidos = () => {
               placeholder="Digite o nome para pesquisa"
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2}>
             <TextField
               fullWidth
               label="CPF"
@@ -268,7 +273,7 @@ const ConsultaEnvolvidos = () => {
               placeholder="Digite o CPF para pesquisa"
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2}>
             <TextField
               fullWidth
               label="Número do BO"
@@ -277,6 +282,17 @@ const ConsultaEnvolvidos = () => {
               onChange={handleFilterChange}
               variant="outlined"
               placeholder="Digite o número do BO"
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              label="PIX Utilizado"
+              name="pix"
+              value={filters.pix}
+              onChange={handleFilterChange}
+              variant="outlined"
+              placeholder="Digite o PIX utilizado"
             />
           </Grid>
           <Grid item xs={12} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
