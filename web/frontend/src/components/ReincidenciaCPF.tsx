@@ -20,7 +20,9 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import {
   BarChart,
@@ -68,6 +70,14 @@ const ReincidenciaCPF = () => {
   // Novos estados para o modal e infrator selecionado
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [selectedInfrator, setSelectedInfrator] = useState<ReincidenciaData | null>(null);
+
+  // Estados para feedback de geração de PDF
+  const [pdfLoading, setPdfLoading] = useState<boolean>(false);
+  const [pdfFeedback, setPdfFeedback] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'success' | 'error'
+  });
 
   // Hook para geração de PDF
   const { toPDF, targetRef } = usePDF({
@@ -150,8 +160,30 @@ const ReincidenciaCPF = () => {
   };
 
   // Nova função para exportar como PDF
-  const handleExportPDF = () => {
-    toPDF();
+  const handleExportPDF = async () => {
+    setPdfLoading(true);
+    try {
+      await toPDF();
+      setPdfFeedback({
+        open: true,
+        message: 'Relatório gerado com sucesso!',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      setPdfFeedback({
+        open: true,
+        message: 'Erro ao gerar o relatório PDF. Tente novamente.',
+        severity: 'error'
+      });
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  // Função para fechar o feedback
+  const handleCloseFeedback = () => {
+    setPdfFeedback({ ...pdfFeedback, open: false });
   };
 
   if (loading) {
@@ -371,17 +403,22 @@ const ReincidenciaCPF = () => {
           </Box>
           <Button
             variant="contained"
-            startIcon={<PictureAsPdfIcon />}
+            startIcon={pdfLoading ? <CircularProgress size={20} color="inherit" /> : <PictureAsPdfIcon />}
             onClick={handleExportPDF}
+            disabled={pdfLoading}
             sx={{
               bgcolor: 'gold',
               color: 'black',
               '&:hover': {
                 bgcolor: '#d4af37',
+              },
+              '&.Mui-disabled': {
+                bgcolor: 'rgba(255, 215, 0, 0.5)',
+                color: 'rgba(0, 0, 0, 0.7)'
               }
             }}
           >
-            Exportar PDF
+            {pdfLoading ? 'Gerando...' : 'Exportar PDF'}
           </Button>
         </DialogTitle>
         <DialogContent sx={{ bgcolor: '#2A2A2A', px: 4, py: 3 }}>
@@ -503,6 +540,21 @@ const ReincidenciaCPF = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      {/* Snackbar para feedback de geração de PDF */}
+      <Snackbar
+        open={pdfFeedback.open}
+        autoHideDuration={6000}
+        onClose={handleCloseFeedback}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseFeedback}
+          severity={pdfFeedback.severity}
+          sx={{ width: '100%' }}
+        >
+          {pdfFeedback.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
