@@ -25,6 +25,13 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+// Importe os ícones adicionais necessários
+import PersonIcon from '@mui/icons-material/Person';
+import EventIcon from '@mui/icons-material/Event';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import DescriptionIcon from '@mui/icons-material/Description';
+import CloseIcon from '@mui/icons-material/Close';
 
 // Definição do tipo para os envolvidos retornados pela API
 interface Envolvido {
@@ -384,159 +391,359 @@ const ConsultaEnvolvidos = () => {
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
 
-      {/* Modal para exibir detalhes do envolvido */}
+      {/* Modal para exibir detalhes do envolvido - Versão melhorada */}
       <Dialog
         open={detailsModalOpen}
         onClose={handleCloseDetailsModal}
         fullWidth
         maxWidth="md"
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            backgroundColor: '#1e1e1e',
+            backgroundImage: 'linear-gradient(rgba(255, 215, 0, 0.05), rgba(0, 0, 0, 0))',
+            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)'
+          }
+        }}
       >
-        <DialogTitle>
-          Detalhes do Envolvido
+        <DialogTitle sx={{
+          p: 2,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '1px solid rgba(255, 215, 0, 0.3)'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <PersonIcon sx={{ color: 'gold', mr: 1, fontSize: 28 }} />
+            <Typography variant="h6" component="span">
+              Detalhes do Envolvido
+            </Typography>
+          </Box>
+          <IconButton
+            onClick={handleCloseDetailsModal}
+            size="small"
+            sx={{
+              color: 'white',
+              '&:hover': { color: 'gold', backgroundColor: 'rgba(255, 215, 0, 0.1)' }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
+
+        <DialogContent dividers sx={{ p: 3, borderColor: 'rgba(255, 215, 0, 0.1)' }}>
           {selectedEnvolvido && (
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>Informações Pessoais</Typography>
-                <Divider sx={{ mb: 2 }} />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Nome Completo:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.nomecompleto}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">CPF:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.cpf}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Nome da Mãe:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.nomedamae}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Data de Nascimento:</Typography>
-                <Typography variant="body1" gutterBottom>{formatDate(selectedEnvolvido.nascimento)}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Nacionalidade:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.nacionalidade}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Naturalidade:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.naturalidade}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">UF:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.uf_envolvido}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Sexo:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.sexo_envolvido}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Telefone:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.telefone_envolvido}</Typography>
-              </Grid>
+            <Box>
+              {/* Informações Pessoais */}
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 2,
+                  mb: 3,
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(30, 30, 30, 0.7)',
+                  border: '1px solid rgba(255, 215, 0, 0.2)'
+                }}
+              >
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 2,
+                  pb: 1,
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  <PersonIcon sx={{ color: 'gold', mr: 1 }} />
+                  <Typography variant="h6">Informações Pessoais</Typography>
+                </Box>
 
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Dados da Ocorrência</Typography>
-                <Divider sx={{ mb: 2 }} />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Número do BO:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numero_do_bo}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Tipo de Envolvido:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.tipo_envolvido}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Data do Fato:</Typography>
-                <Typography variant="body1" gutterBottom>{formatDate(selectedEnvolvido.data_fato)}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Natureza:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.natureza}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Situação:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.situacao}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Delegacia Responsável:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.delegacia_responsavel}</Typography>
-              </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Nome Completo:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.nomecompleto}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">CPF:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.cpf}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Nome da Mãe:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.nomedamae}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Data de Nascimento:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{formatDate(selectedEnvolvido.nascimento)}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Nacionalidade:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.nacionalidade}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Naturalidade:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.naturalidade}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">UF:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.uf_envolvido}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Sexo:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.sexo_envolvido}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Telefone:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.telefone_envolvido}</Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
 
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Local do Fato</Typography>
-                <Divider sx={{ mb: 2 }} />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">CEP:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.cep_fato}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Logradouro:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.logradouro_fato}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Número:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numerocasa_fato}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Bairro:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.bairro_fato}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Município:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.municipio_fato}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">País:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.pais_fato}</Typography>
-              </Grid>
+              {/* Dados da Ocorrência */}
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 2,
+                  mb: 3,
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(30, 30, 30, 0.7)',
+                  border: '1px solid rgba(255, 215, 0, 0.2)'
+                }}
+              >
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 2,
+                  pb: 1,
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  <EventIcon sx={{ color: 'gold', mr: 1 }} />
+                  <Typography variant="h6">Dados da Ocorrência</Typography>
+                </Box>
 
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Dados Financeiros</Typography>
-                <Divider sx={{ mb: 2 }} />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Instituição Bancária:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.instituicao_bancaria}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Valor:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.valor}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">PIX Utilizado:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.pix_utilizado}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Número da Conta:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numero_conta_bancaria}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Número da Agência:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.numero_agencia_bancaria}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Cartão:</Typography>
-                <Typography variant="body1" gutterBottom>{selectedEnvolvido.cartao}</Typography>
-              </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Número do BO:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.numero_do_bo}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Tipo de Envolvido:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.tipo_envolvido}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Data do Fato:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{formatDate(selectedEnvolvido.data_fato)}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Natureza:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.natureza}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Situação:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.situacao}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Delegacia Responsável:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.delegacia_responsavel}</Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
 
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Relato</Typography>
-                <Divider sx={{ mb: 2 }} />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="body1">{selectedEnvolvido.relato_historico}</Typography>
-              </Grid>
-            </Grid>
+              {/* Local do Fato */}
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 2,
+                  mb: 3,
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(30, 30, 30, 0.7)',
+                  border: '1px solid rgba(255, 215, 0, 0.2)'
+                }}
+              >
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 2,
+                  pb: 1,
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  <LocationOnIcon sx={{ color: 'gold', mr: 1 }} />
+                  <Typography variant="h6">Local do Fato</Typography>
+                </Box>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">CEP:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.cep_fato}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Logradouro:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.logradouro_fato}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Número:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.numerocasa_fato}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Bairro:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.bairro_fato}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Município:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.municipio_fato}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">País:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.pais_fato}</Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Dados Financeiros */}
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 2,
+                  mb: 3,
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(30, 30, 30, 0.7)',
+                  border: '1px solid rgba(255, 215, 0, 0.2)'
+                }}
+              >
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 2,
+                  pb: 1,
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  <AccountBalanceIcon sx={{ color: 'gold', mr: 1 }} />
+                  <Typography variant="h6">Dados Financeiros</Typography>
+                </Box>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Instituição Bancária:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.instituicao_bancaria}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Valor:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.valor}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">PIX Utilizado:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.pix_utilizado}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Número da Conta:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.numero_conta_bancaria}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Número da Agência:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.numero_agencia_bancaria}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Cartão:</Typography>
+                      <Typography variant="body1" fontWeight="medium">{selectedEnvolvido.cartao}</Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Relato */}
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(30, 30, 30, 0.7)',
+                  border: '1px solid rgba(255, 215, 0, 0.2)'
+                }}
+              >
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 2,
+                  pb: 1,
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  <DescriptionIcon sx={{ color: 'gold', mr: 1 }} />
+                  <Typography variant="h6">Relato</Typography>
+                </Box>
+
+                <Box sx={{ p: 1, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 1 }}>
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+                    {selectedEnvolvido.relato_historico || 'Nenhum relato disponível.'}
+                  </Typography>
+                </Box>
+              </Paper>
+            </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDetailsModal} color="primary">
+
+        <DialogActions sx={{ p: 2, borderTop: '1px solid rgba(255, 215, 0, 0.3)' }}>
+          <Button
+            onClick={handleCloseDetailsModal}
+            variant="contained"
+            startIcon={<CloseIcon />}
+            sx={{
+              bgcolor: 'gold',
+              color: 'black',
+              '&:hover': {
+                bgcolor: '#d4af37',
+              }
+            }}
+          >
             Fechar
           </Button>
         </DialogActions>
