@@ -46,6 +46,8 @@ func main() {
     consultaHandler := handlers.NewConsultaEnvolvidoHandler(consultaRepo)
     dashboardRepo := repository.NewDashboardRepository(db)
     dashboardStatsHandler := handlers.NewDashboardStatsHandler(dashboardRepo)
+    reincidenciaRepo := repository.NewReincidenciaRepository(db)
+    reincidenciaHandler := handlers.NewReincidenciaHandler(reincidenciaRepo)
     
     r := mux.NewRouter()
     
@@ -81,6 +83,7 @@ func main() {
     apiRouter.HandleFunc("/dashboard/quantidade-infratores", dashboardStatsHandler.GetQuantidadeInfratores).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/dashboard/quantidade-vitimas", dashboardStatsHandler.GetQuantidadeVitimas).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/dashboard/infratores-por-delegacia", dashboardStatsHandler.GetInfratoresPorDelegacia).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/reincidencia/cpf", reincidenciaHandler.GetReincidenciaPorCPF).Methods("GET", "OPTIONS")
     // adminRouter := apiRouter.PathPrefix("/admin").Subrouter()
     // adminRouter.Use(middleware.AdminOnly)
     // ... rotas de admin

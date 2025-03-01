@@ -7,6 +7,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PersonIcon from '@mui/icons-material/Person';
 import SearchIcon from '@mui/icons-material/Search';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 interface MenuItem {
   text: string;
@@ -50,6 +51,20 @@ export default function Layout({ children }: LayoutProps) {
       text: 'Consulta de Envolvidos',
       icon: <SearchIcon sx={{ color: 'gold' }} />,
       path: '/consulta-envolvidos'
+    },
+    {
+      text: 'Gráficos Reincidência',
+      icon: <AssessmentIcon sx={{ color: 'gold' }} />,
+      subItems: [
+        {
+          text: 'Reincidência Por CPF',
+          path: '/reincidencia-cpf'
+        },
+        {
+          text: 'Reincidência Por PIX',
+          path: '/reincidencia-pix'
+        }
+      ]
     },
     {
       text: 'Configurações',

@@ -10,6 +10,8 @@ import { darkTheme } from './theme/darkTheme'
 import CadastroEnvolvidos from './components/CadastroEnvolvidos'
 import ConsultaEnvolvidos from './components/ConsultaEnvolvidos'
 import DashboardContent from './components/DashboardContent'
+import ReincidenciaCPF from './components/ReincidenciaCPF'
+import ReincidenciaPIX from './components/ReincidenciaPIX'
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
             <Route path="/settings/register" element={<UserRegister />} />
             <Route path="/cadastro-envolvidos" element={<CadastroEnvolvidos />} />
             <Route path="/consulta-envolvidos" element={<ConsultaEnvolvidos />} />
+            <Route path="/reincidencia-cpf" element={<ReincidenciaCPF />} />
+            <Route path="/reincidencia-pix" element={<ReincidenciaPIX />} />
           </Route>
         </Routes>
       </Router>
