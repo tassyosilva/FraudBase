@@ -44,6 +44,8 @@ func main() {
     envolvidoHandler := handlers.NewEnvolvidoHandler(envolvidoRepo)
     consultaRepo := repository.NewConsultaRepository(db)
     consultaHandler := handlers.NewConsultaEnvolvidoHandler(consultaRepo)
+    dashboardRepo := repository.NewDashboardRepository(db)
+    dashboardStatsHandler := handlers.NewDashboardStatsHandler(dashboardRepo)
     
     r := mux.NewRouter()
     
@@ -73,7 +75,11 @@ func main() {
     apiRouter.HandleFunc("/envolvidos", envolvidoHandler.CreateEnvolvido).Methods("POST", "OPTIONS")
     apiRouter.HandleFunc("/consulta-envolvidos", consultaHandler.GetEnvolvidos).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/consulta-envolvidos/{id}", consultaHandler.GetEnvolvidoById).Methods("GET", "OPTIONS")
-    // Rotas que exigem privilégios de administrador (se necessário)
+    apiRouter.HandleFunc("/dashboard/vitimas-por-sexo", dashboardStatsHandler.GetVitimasPorSexo).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/dashboard/vitimas-por-faixa-etaria", dashboardStatsHandler.GetVitimasPorFaixaEtaria).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/dashboard/quantidade-bos", dashboardStatsHandler.GetQuantidadeBOs).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/dashboard/quantidade-infratores", dashboardStatsHandler.GetQuantidadeInfratores).Methods("GET", "OPTIONS")
+    apiRouter.HandleFunc("/dashboard/quantidade-vitimas", dashboardStatsHandler.GetQuantidadeVitimas).Methods("GET", "OPTIONS")
     // adminRouter := apiRouter.PathPrefix("/admin").Subrouter()
     // adminRouter.Use(middleware.AdminOnly)
     // ... rotas de admin

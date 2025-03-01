@@ -9,6 +9,7 @@ import UserRegister from './components/UserRegister'
 import { darkTheme } from './theme/darkTheme'
 import CadastroEnvolvidos from './components/CadastroEnvolvidos'
 import ConsultaEnvolvidos from './components/ConsultaEnvolvidos'
+import DashboardContent from './components/DashboardContent'
 
 function App() {
   return (
@@ -18,7 +19,7 @@ function App() {
         <Routes>
           <Route path="/" element={<SignIn />} />
           <Route element={<PrivateRoute><Layout /></PrivateRoute>}>
-            <Route path="/dashboard" element={<div>Dashboard Content</div>} />
+            <Route path="/dashboard" element={<DashboardContent />} />
             <Route path="/settings/users" element={<UsersList />} />
             <Route path="/settings/register" element={<UserRegister />} />
             <Route path="/cadastro-envolvidos" element={<CadastroEnvolvidos />} />
