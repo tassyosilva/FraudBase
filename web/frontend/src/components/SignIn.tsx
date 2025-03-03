@@ -71,7 +71,7 @@ export default function SignIn() {
           }}
         >
           <Box sx={{ mb: 4 }}>
-            <img src={logo} alt="FraudBase Logo" style={{ height: '120px' }} />
+            <img src={logo} alt="FraudBase Logo" style={{ height: '200px' }} />
           </Box>
           <Typography component="h1" variant="h5" sx={{ color: 'white', mb: 3 }}>
             FraudBase

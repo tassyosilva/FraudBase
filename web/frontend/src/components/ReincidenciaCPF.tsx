@@ -41,6 +41,9 @@ import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 // Correção da importação
 import { usePDF } from 'react-to-pdf';
+// Importações para a nova opção de PDF
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Interface para os dados de reincidência
 interface ReincidenciaData {
@@ -159,7 +162,7 @@ const ReincidenciaCPF = () => {
     setSelectedInfrator(null);
   };
 
-  // Nova função para exportar como PDF
+  // Função para exportar como PDF (colorido)
   const handleExportPDF = async () => {
     setPdfLoading(true);
     try {
@@ -174,6 +177,143 @@ const ReincidenciaCPF = () => {
       setPdfFeedback({
         open: true,
         message: 'Erro ao gerar o relatório PDF. Tente novamente.',
+        severity: 'error'
+      });
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  // Nova função para exportar como PDF em preto e branco usando jsPDF
+  const handleExportBWPDF = async () => {
+    if (!selectedInfrator) return;
+
+    setPdfLoading(true);
+    try {
+      // Cria temporariamente um div com o conteúdo em preto e branco
+      const reportElement = document.createElement('div');
+      reportElement.style.position = 'absolute';
+      reportElement.style.left = '-9999px';
+      reportElement.style.width = '210mm';
+      reportElement.style.background = 'white';
+      reportElement.style.padding = '20mm';
+      reportElement.style.fontFamily = 'Arial, sans-serif';
+
+      // Criando o conteúdo do relatório em preto e branco
+      reportElement.innerHTML = `
+        <div style="color: black; background: white; font-family: Arial, sans-serif;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: black; font-weight: bold; margin-bottom: 10px;">RELATÓRIO DE REINCIDÊNCIA</h1>
+            <p style="color: #333; margin-bottom: 10px;">Sistema FraudBase - Gerado em ${new Date().toLocaleString('pt-BR')}</p>
+            <hr style="border-color: black; margin: 15px 0;" />
+          </div>
+
+          <div style="padding: 15px; margin-bottom: 20px; border: 1px solid #999; border-radius: 4px;">
+            <h2 style="color: black; margin-bottom: 15px;">Dados do Infrator</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <p style="color: black;"><strong>Nome Completo:</strong> ${selectedInfrator.nomecompleto || 'Não informado'}</p>
+              </div>
+              <div>
+                <p style="color: black;"><strong>CPF:</strong> ${formatCPF(selectedInfrator.cpf)}</p>
+              </div>
+              <div style="grid-column: span 2;">
+                <p style="color: black;"><strong>Total de Ocorrências:</strong> ${selectedInfrator.quantidade}</p>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 15px; margin-bottom: 20px; border: 1px solid #999; border-radius: 4px;">
+            <h2 style="color: black; margin-bottom: 15px;">Boletins de Ocorrência Registrados</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th style="color: black; font-weight: bold; border-bottom: 1px solid #999; text-align: left; padding: 8px;">#</th>
+                  <th style="color: black; font-weight: bold; border-bottom: 1px solid #999; text-align: left; padding: 8px;">Número do BO</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${getBOArray(selectedInfrator.numeros_do_bo).map((bo, index) => `
+                  <tr>
+                    <td style="color: black; border-bottom: 1px solid #999; padding: 8px;">${index + 1}</td>
+                    <td style="color: black; border-bottom: 1px solid #999; padding: 8px;">${bo}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="padding: 15px; margin-bottom: 20px; border: 1px solid #999; border-radius: 4px;">
+            <h2 style="color: black; margin-bottom: 15px;">Análise de Risco</h2>
+            <div style="padding: 10px; border-radius: 4px; border: 1px solid #999; border-left: 4px solid black;">
+              <p style="font-weight: bold; color: black;">
+                Nível de Reincidência: ${selectedInfrator.quantidade > 5 ? 'ALTO' :
+          selectedInfrator.quantidade > 3 ? 'MÉDIO' :
+            'BAIXO'
+        }
+              </p>
+              <p style="margin-top: 10px; color: black;">
+                ${selectedInfrator.quantidade > 5 ? 'Infrator com alto índice de reincidência. Recomenda-se atenção especial.' :
+          selectedInfrator.quantidade > 3 ? 'Infrator com reincidência moderada. Observe com cuidado.' :
+            'Infrator com baixa reincidência, mas já demonstra padrão repetitivo.'
+        }
+              </p>
+            </div>
+          </div>
+
+          <div style="padding: 15px; border: 1px solid #999; border-radius: 4px;">
+            <h2 style="color: black; margin-bottom: 15px;">Observações</h2>
+            <p style="color: black;">
+              Este relatório apresenta o histórico condensado de reincidência do infrator. Para mais detalhes sobre cada ocorrência,
+              consulte os boletins de ocorrência individuais no sistema.
+            </p>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(reportElement);
+
+      // Captura como imagem e converte para PDF
+      try {
+        const canvas = await html2canvas(reportElement);
+        const imgData = canvas.toDataURL('image/png');
+
+        // Cria o PDF
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210;
+        const pageHeight = 297;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // Adiciona a primeira página
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // Adiciona páginas adicionais se necessário
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        pdf.save('relatorio-reincidencia-pb.pdf');
+
+        setPdfFeedback({
+          open: true,
+          message: 'Relatório em preto e branco gerado com sucesso!',
+          severity: 'success'
+        });
+      } finally {
+        // Garante que o elemento temporário seja removido mesmo em caso de erro
+        document.body.removeChild(reportElement);
+      }
+    } catch (error) {
+      console.error('Erro ao gerar PDF em preto e branco:', error);
+      setPdfFeedback({
+        open: true,
+        message: 'Erro ao gerar o relatório em preto e branco.',
         severity: 'error'
       });
     } finally {
@@ -401,25 +541,48 @@ const ReincidenciaCPF = () => {
           <Box>
             Relatório Detalhado de Reincidência
           </Box>
-          <Button
-            variant="contained"
-            startIcon={pdfLoading ? <CircularProgress size={20} color="inherit" /> : <PictureAsPdfIcon />}
-            onClick={handleExportPDF}
-            disabled={pdfLoading}
-            sx={{
-              bgcolor: 'gold',
-              color: 'black',
-              '&:hover': {
-                bgcolor: '#d4af37',
-              },
-              '&.Mui-disabled': {
-                bgcolor: 'rgba(255, 215, 0, 0.5)',
-                color: 'rgba(0, 0, 0, 0.7)'
-              }
-            }}
-          >
-            {pdfLoading ? 'Gerando...' : 'Exportar PDF'}
-          </Button>
+          <Box>
+            <Button
+              variant="contained"
+              startIcon={pdfLoading ? <CircularProgress size={20} color="inherit" /> : <PictureAsPdfIcon />}
+              onClick={handleExportPDF}
+              disabled={pdfLoading}
+              sx={{
+                bgcolor: 'gold',
+                color: 'black',
+                '&:hover': {
+                  bgcolor: '#d4af37',
+                },
+                '&.Mui-disabled': {
+                  bgcolor: 'rgba(255, 215, 0, 0.5)',
+                  color: 'rgba(0, 0, 0, 0.7)'
+                },
+                mr: 1
+              }}
+            >
+              {pdfLoading ? 'Gerando...' : 'Exportar PDF'}
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={pdfLoading ? <CircularProgress size={20} color="inherit" /> : <PictureAsPdfIcon />}
+              onClick={handleExportBWPDF}
+              disabled={pdfLoading}
+              sx={{
+                borderColor: 'white',
+                color: 'white',
+                '&:hover': {
+                  borderColor: '#d4d4d4',
+                  bgcolor: 'rgba(255, 255, 255, 0.1)'
+                },
+                '&.Mui-disabled': {
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  color: 'rgba(255, 255, 255, 0.3)'
+                }
+              }}
+            >
+              {pdfLoading ? 'Gerando...' : 'Exportar P&B'}
+            </Button>
+          </Box>
         </DialogTitle>
         <DialogContent sx={{ bgcolor: '#2A2A2A', px: 4, py: 3 }}>
           {selectedInfrator && (
