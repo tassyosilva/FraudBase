@@ -15,9 +15,12 @@
     "@fontsource/roboto": "^5.1.1",
     "@mui/icons-material": "^6.4.4",
     "@mui/material": "^6.4.4",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.29.0",
+    "react-to-pdf": "^1.0.1",
     "recharts": "^2.15.1"
   },
   "devDependencies": {

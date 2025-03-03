@@ -280,7 +280,7 @@ const CadastroEnvolvidos = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Função para lidar com a expansão do Accordion
-  const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+  const handleAccordionChange = (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
   // Função para lidar com mudanças nos campos do formulário

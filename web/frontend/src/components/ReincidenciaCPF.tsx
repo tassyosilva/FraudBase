@@ -90,7 +90,7 @@ const ReincidenciaCPF = () => {
       margin: 10,
       orientation: 'portrait'
     }
-  });
+  } as any);
 
   // Função para formatar CPF (adiciona pontos e traço)
   const formatCPF = (cpf: string) => {

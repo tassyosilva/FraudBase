@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: fraudbase-backend:latest
+    container_name: fraudbase-api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=192.168.1.106
+      - DB_USER=postgres
+      - DB_PASSWORD=123456
+      - DB_NAME=estelionato
+      - DB_SSLMODE=disable
+    networks:
+      - fraudbase-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: fraudbase-frontend:latest
+    container_name: fraudbase-ui
+    restart: always
+    ports:
+      - "8000:80"
+    depends_on:
+      - backend
+    networks:
+      - fraudbase-network
+
+networks:
+  fraudbase-network:
+    driver: bridge

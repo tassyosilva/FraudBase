@@ -39,10 +39,6 @@ interface DelegaciaStats {
   quantidade: number;
 }
 
-interface CountStats {
-  quantidade: number;
-}
-
 // Cores para os gráficos
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -236,7 +232,7 @@ const DashboardContent = () => {
                   nameKey="sexo"
                   label={({ sexo, percent }) => `${sexo}: ${(percent * 100).toFixed(0)}%`}
                 >
-                  {vitimasPorSexo.map((entry, index) => (
+                  {vitimasPorSexo.map((_entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

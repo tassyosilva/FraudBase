@@ -1,0 +1,27 @@
+# Estágio de build
+FROM node:18-alpine AS build
+
+WORKDIR /app
+
+# Copiar package.json e instalar dependências
+COPY web/frontend/package*.json ./
+RUN npm ci
+
+# Copiar o restante do código do frontend
+COPY web/frontend/ ./
+
+# Construir a aplicação
+RUN npm run build
+
+# Estágio de produção com Nginx
+FROM nginx:alpine
+
+# Copiar os arquivos de build para o diretório do Nginx
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copiar uma configuração personalizada do Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

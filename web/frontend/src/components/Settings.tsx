@@ -32,7 +32,7 @@ function TabPanel(props: TabPanelProps) {
 const Settings: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
@@ -60,5 +60,4 @@ const Settings: React.FC = () => {
   );
 };
 
-export default Settings;
 export default Settings;

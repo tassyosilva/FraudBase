@@ -12,7 +12,21 @@ import (
 
 func corsMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+        // Obtenha a origem da requisição
+        origin := r.Header.Get("Origin")
+        
+        // Lista de origens permitidas
+        allowedOrigins := map[string]bool{
+            "http://localhost:5173": true,
+            "http://localhost:8000": true,
+            "http://localhost": true,
+        }
+        
+        // Verifique se a origem está na lista de permitidas
+        if allowedOrigins[origin] {
+            w.Header().Set("Access-Control-Allow-Origin", origin)
+        }
+        
         w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
         w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Authorization")
         if r.Method == "OPTIONS" {
