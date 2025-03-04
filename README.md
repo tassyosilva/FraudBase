@@ -39,13 +39,13 @@ git clone https://github.com/tassyosilva/FraudBase.git
 cd "FraudBase"
 ```
 4. Abra o arquivo `docker-compose.yml`com o nano, configure as variáveis do seu banco de dados e salve.
-5. Você pode inserir sua logomarca alterando o arquivo na pasta `frontend/src/assets/logo.png`
+5. Você pode inserir sua logomarca alterando o arquivo na pasta `web/frontend/src/assets/logo.png`
 6. Execute o comando:
 ```bash
 docker compose up -d
 ```
 7. Após a finalização, o sistema estará disponível em `http://localhost:8000`. Usuário: `admin`, Senha: `admin`.
-8. Para acesso externo da aplicação pelo ip do servidor, ou no caso de proxy reverso para o servidor, é necessário adicionar a nova origem na lista de origens permitidas no arquivo `main.go`.
+8. Para acesso externo a aplicação pelo ip do servidor, ou no caso de proxy reverso para o servidor, é necessário adicionar a nova origem na lista de origens permitidas no arquivo `main.go`.
 9. Para implementar alterações no arquivo main.go e em outros arquivos, é necessário construir uma nova build, ou seja, recomenda-se deletar as imagens criadas (fraudbase-backend e fraudbase-frontend) e subir novamente com o compose.
 
 ### Modo de Desenvolvimento
