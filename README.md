@@ -42,10 +42,38 @@ cd "FraudBase"
 5. Você pode inserir sua logomarca alterando o arquivo na pasta `frontend/src/assets/logo.png`
 6. Execute o comando:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 7. Após a finalização, o sistema estará disponível em `http://localhost:8000`. Usuário: `admin`, Senha: `admin`.
 8. Caso você faça proxy reverso para o servidor, é necessário adicionar a nova origem na lista de origens permitidas no arquivo `main.go`. 
 9. Para implementar alterações no arquivo main.go e em outros arquivos, é necessário construir uma nova build, ou seja, recomenda-se deletar as imagens criadas (fraudbase-backend e fraudbase-frontend) e subir novamente com o compose.
 
 #### Modo de Desenvolvimento
+- Para executar o sistema em ambiente de desenvolvimento:
+
+1. **Backend (Go)**:
+   - Certifique-se que o Go está instalado (versão 1.23+)
+   - Dentro da pasta raiz do FraudBase, instale as dependências:
+```bash
+go mod download
+```
+   - Execute o servidor backend de desenvolvimento:
+```bash
+go run main.go
+```
+
+2. **Frontend (React TypeScript)**:
+   - Certifique-se que o Node.js está instalado (versão 18+)
+   - Navegue até a pasta `web/frontend/`
+   - Instale as dependências:
+
+```bash
+npm install
+```
+
+   - Execute o servidor frontend de desenvolvimento:
+
+```bash
+npm run dev
+```
+   - A aplicação estará disponível para acesso em `http://localhost:5173`
