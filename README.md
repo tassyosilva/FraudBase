@@ -2,10 +2,10 @@
 - Sistema para cruzamento de dados de envolvidos em fraudes eletrônicas.
 - `Este software não é livre para uso, você pode visualizar o código do projeto, mas deve estar atento à licença de uso restrito do software.` [Licença de uso restrito.](https://github.com/tassyosilva/FraudBase/blob/main/LICENSE)
 
-#### Sobre o Projeto
+### Sobre o Projeto
 - FraudBase é uma aplicação web completa para cadastro, consulta e análise de ocorrências relacionadas a estelionatos e fraudes ocorridos em âmbito virtual. O sistema permite o gerenciamento de informações detalhadas sobre envolvidos, ocorrências e o cruzamento de dados com o objetivo de verificar a reincidência de infratores nos referidos crimes.
 
-#### Requisitos para o Deploy do sistema
+### Requisitos para o Deploy do sistema
 - O sistema utiliza PostgreSQL como banco de dados. Siga os passos abaixo para configurar:
 
 - Instale o PostgreSQL em sua máquina ou utilize um servidor existente.
@@ -25,7 +25,7 @@ CREATE DATABASE fraudbase WITH ENCODING 'UTF8' LC_COLLATE='pt_BR.UTF-8' LC_CTYPE
 ```
 - Faça o download do arquivo de backup disponível [aqui](bd_fraudbase) e restaure no banco de dados que foi criado.
 
-#### Modo de Produção
+### Modo de Produção
 
 - Para executar o sistema em ambiente de produção, utilize o Docker Compose:
 
@@ -48,11 +48,11 @@ docker compose up -d
 8. Caso você faça proxy reverso para o servidor, é necessário adicionar a nova origem na lista de origens permitidas no arquivo `main.go`. 
 9. Para implementar alterações no arquivo main.go e em outros arquivos, é necessário construir uma nova build, ou seja, recomenda-se deletar as imagens criadas (fraudbase-backend e fraudbase-frontend) e subir novamente com o compose.
 
-#### Modo de Desenvolvimento
+### Modo de Desenvolvimento
 - Para executar o sistema em ambiente de desenvolvimento:
 
 1. **Backend (Go)**:
-   - Certifique-se que o Go está instalado (versão 1.23+)
+   - Certifique-se que o Go está instalado (versão 1.23.6+)
    - Dentro da pasta raiz do FraudBase, instale as dependências:
 ```bash
 go mod download
@@ -63,7 +63,7 @@ go run main.go
 ```
 
 2. **Frontend (React TypeScript)**:
-   - Certifique-se que o Node.js está instalado (versão 18+)
+   - Certifique-se que o Node.js está instalado (versão 18.20.5+)
    - Navegue até a pasta `web/frontend/`
    - Instale as dependências:
 
