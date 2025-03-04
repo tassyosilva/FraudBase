@@ -28,7 +28,7 @@ func ConnectDB() (*sql.DB, error) {
     
     dbname := os.Getenv("DB_NAME")
     if dbname == "" {
-        dbname = "estelionato" // Valor padrão para desenvolvimento
+        dbname = "fraudbase" // Valor padrão para desenvolvimento
     }
     
     sslmode := os.Getenv("DB_SSLMODE")
