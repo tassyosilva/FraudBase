@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, } from 'react';
 import {
   Box,
   Typography,
@@ -22,7 +22,8 @@ import {
   TableHead,
   TableRow,
   Snackbar,
-  Alert
+  Alert,
+  alpha
 } from '@mui/material';
 import {
   BarChart,
@@ -32,18 +33,21 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Cell
 } from 'recharts';
 import PersonIcon from '@mui/icons-material/Person';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-// Correção da importação
+import BarChartIcon from '@mui/icons-material/BarChart';
 import { usePDF } from 'react-to-pdf';
-// Importações para a nova opção de PDF
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+
+// Cor dourada padrão do sistema
+const GOLD_COLOR = '#FFD700';
 
 // Interface para os dados de reincidência
 interface ReincidenciaData {
@@ -62,7 +66,9 @@ interface PaginatedResponse {
   totalPages: number;
 }
 
+
 const ReincidenciaCPF = () => {
+
   // Estados existentes
   const [data, setData] = useState<ReincidenciaData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -337,8 +343,8 @@ const ReincidenciaCPF = () => {
           height: '50vh'
         }}
       >
-        <CircularProgress sx={{ color: 'gold' }} />
-        <Typography variant="h6" sx={{ mt: 2 }}>
+        <CircularProgress sx={{ color: GOLD_COLOR }} />
+        <Typography variant="h6" sx={{ mt: 2, color: alpha('#fff', 0.9) }}>
           Carregando dados de reincidência...
         </Typography>
       </Box>
@@ -347,7 +353,15 @@ const ReincidenciaCPF = () => {
 
   if (error) {
     return (
-      <Paper sx={{ p: 3, textAlign: 'center' }}>
+      <Paper sx={{
+        p: 4,
+        textAlign: 'center',
+        background: `linear-gradient(135deg, ${alpha('#1f2937', 0.97)}, ${alpha('#111827', 0.98)})`,
+        backdropFilter: 'blur(10px)',
+        borderRadius: 2,
+        boxShadow: `0 8px 32px 0 ${alpha('#000', 0.37)}`,
+        border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
+      }}>
         <Typography variant="h6" color="error">
           {error}
         </Typography>
@@ -357,8 +371,16 @@ const ReincidenciaCPF = () => {
 
   if (!data || data.length === 0) {
     return (
-      <Paper sx={{ p: 3, textAlign: 'center' }}>
-        <Typography variant="h6">
+      <Paper sx={{
+        p: 4,
+        textAlign: 'center',
+        background: `linear-gradient(135deg, ${alpha('#1f2937', 0.97)}, ${alpha('#111827', 0.98)})`,
+        backdropFilter: 'blur(10px)',
+        borderRadius: 2,
+        boxShadow: `0 8px 32px 0 ${alpha('#000', 0.37)}`,
+        border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
+      }}>
+        <Typography variant="h6" sx={{ color: alpha('#fff', 0.8) }}>
           Nenhum dado de reincidência encontrado.
         </Typography>
       </Paper>
@@ -382,21 +404,66 @@ const ReincidenciaCPF = () => {
 
   return (
     <Box>
-      {/* Conteúdo principal - Sem alterações no cabeçalho e no gráfico */}
-      <Paper sx={{ p: 3, mb: 3, textAlign: 'center' }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'gold', fontWeight: 'medium' }}>
+      {/* Cabeçalho Principal */}
+      <Paper sx={{
+        p: 4,
+        mb: 3,
+        textAlign: 'center',
+        background: `linear-gradient(135deg, ${alpha('#1f2937', 0.96)}, ${alpha('#111827', 0.98)})`,
+        backdropFilter: 'blur(10px)',
+        borderRadius: 2,
+        boxShadow: `0 8px 32px 0 ${alpha('#000', 0.37)}`,
+        border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
+      }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          sx={{
+            color: GOLD_COLOR,
+            fontWeight: 'bold',
+            textShadow: '0 2px 10px rgba(0,0,0,0.3)'
+          }}
+        >
           Reincidência de Infratores por CPF
         </Typography>
-        <Typography variant="subtitle1" gutterBottom sx={{ maxWidth: '800px', mx: 'auto' }}>
+        <Typography
+          variant="subtitle1"
+          gutterBottom
+          sx={{
+            maxWidth: '800px',
+            mx: 'auto',
+            color: alpha('#fff', 0.8),
+            fontSize: '1.1rem'
+          }}
+        >
           Este gráfico mostra os infratores com múltiplas ocorrências registradas no sistema, identificados pelo mesmo CPF.
         </Typography>
       </Paper>
 
-      {/* Gráfico - Sem alterações */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom textAlign="center">
-          Top Infratores Reincidentes por CPF
-        </Typography>
+      {/* Gráfico */}
+      <Paper sx={{
+        p: 4,
+        mb: 3,
+        background: `linear-gradient(135deg, ${alpha('#1f2937', 0.97)}, ${alpha('#111827', 0.98)})`,
+        backdropFilter: 'blur(10px)',
+        borderRadius: 2,
+        boxShadow: `0 8px 32px 0 ${alpha('#000', 0.37)}`,
+        border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 1 }}>
+          <BarChartIcon sx={{ color: GOLD_COLOR }} />
+          <Typography
+            variant="h6"
+            sx={{
+              color: alpha('#fff', 0.95),
+              fontWeight: 'bold'
+            }}
+          >
+            Top Infratores Reincidentes por CPF
+          </Typography>
+        </Box>
+
         <ResponsiveContainer width="100%" height={400}>
           <BarChart
             data={chartData}
@@ -407,36 +474,79 @@ const ReincidenciaCPF = () => {
               bottom: 100,
             }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke={alpha('#fff', 0.1)} />
             <XAxis
               dataKey="name"
               angle={-45}
               textAnchor="end"
               height={100}
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12, fill: alpha('#fff', 0.8) }}
             />
-            <YAxis />
+            <YAxis tick={{ fill: alpha('#fff', 0.8) }} />
             <Tooltip
               formatter={(value) => [`${value} ocorrências`, 'Quantidade']}
               labelFormatter={(label) => `Infrator: ${label}`}
+              contentStyle={{
+                backgroundColor: alpha('#000', 0.8),
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha('#fff', 0.1)}`,
+                borderRadius: '4px',
+                color: '#fff'
+              }}
             />
-            <Legend />
-            <Bar dataKey="quantidade" fill="#FF8042" name="Quantidade de Ocorrências" />
+            <Legend wrapperStyle={{ color: alpha('#fff', 0.8) }} />
+            <Bar
+              dataKey="quantidade"
+              name="Quantidade de Ocorrências"
+              radius={[4, 4, 0, 0]}
+              fill={GOLD_COLOR}
+            >
+              {chartData.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={GOLD_COLOR}
+                  stroke={alpha(GOLD_COLOR, 0.2)}
+                  strokeWidth={2}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </Paper>
 
-      {/* Caixas com infratores - Adicionado onClick para abrir o modal */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">
+      {/* Caixas com infratores */}
+      <Paper sx={{
+        p: 4,
+        mb: 3,
+        background: `linear-gradient(135deg, ${alpha('#1f2937', 0.97)}, ${alpha('#111827', 0.98)})`,
+        backdropFilter: 'blur(10px)',
+        borderRadius: 2,
+        boxShadow: `0 8px 32px 0 ${alpha('#000', 0.37)}`,
+        border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
+      }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              color: alpha('#fff', 0.95),
+              fontWeight: 'bold'
+            }}
+          >
+            <RepeatIcon sx={{ color: GOLD_COLOR }} />
             Detalhes dos Infratores Reincidentes
           </Typography>
           <Chip
             icon={<RepeatIcon />}
             label={`Total: ${data.length} infratores`}
-            color="primary"
-            sx={{ bgcolor: 'gold', color: 'black', fontWeight: 'bold' }}
+            sx={{
+              bgcolor: alpha(GOLD_COLOR, 0.9),
+              color: '#000',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+            }}
           />
         </Box>
 
@@ -446,55 +556,64 @@ const ReincidenciaCPF = () => {
               <Card
                 onClick={() => handleOpenModal(infrator)}
                 sx={{
-                  bgcolor: '#2A2A2A',
-                  borderLeft: '5px solid #FF8042',
+                  background: `linear-gradient(135deg, ${alpha('#1a1a1a', 0.8)}, ${alpha('#000000', 0.9)})`,
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: 2,
+                  boxShadow: `0 8px 32px 0 ${alpha('#000', 0.37)}`,
+                  border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`,
+                  borderLeft: `5px solid ${GOLD_COLOR}`,
                   height: '100%',
-                  transition: 'transform 0.2s',
+                  transition: 'transform 0.3s, box-shadow 0.3s',
                   '&:hover': {
                     transform: 'translateY(-5px)',
-                    boxShadow: '0 10px 20px rgba(0,0,0,0.4)',
-                    cursor: 'pointer'
-                  }
+                    boxShadow: `0 14px 28px ${alpha('#000', 0.5)}`,
+                    cursor: 'pointer',
+                    borderColor: alpha(GOLD_COLOR, 0.5)
+                  },
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}
               >
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <PersonIcon sx={{ color: 'gold', mr: 1 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    <PersonIcon sx={{ color: GOLD_COLOR, mr: 1 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: alpha('#fff', 0.95) }}>
                       {infrator.nomecompleto || 'Nome não informado'}
                     </Typography>
                   </Box>
 
-                  <Divider sx={{ my: 1 }} />
+                  <Divider sx={{ my: 1.5, borderColor: alpha('#fff', 0.08) }} />
 
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <AssignmentIndIcon sx={{ color: 'gold', mr: 1 }} />
-                    <Typography variant="body1">
+                    <AssignmentIndIcon sx={{ color: GOLD_COLOR, mr: 1 }} />
+                    <Typography variant="body1" sx={{ color: alpha('#fff', 0.9) }}>
                       <strong>CPF:</strong> {formatCPF(infrator.cpf)}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <RepeatIcon sx={{ color: 'gold', mr: 1 }} />
-                    <Typography variant="body1">
+                    <RepeatIcon sx={{ color: GOLD_COLOR, mr: 1 }} />
+                    <Typography variant="body1" sx={{ color: alpha('#fff', 0.9) }}>
                       <strong>Ocorrências:</strong> {infrator.quantidade}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
-                    <ListAltIcon sx={{ color: 'gold', mr: 1, mt: 0.5 }} />
+                    <ListAltIcon sx={{ color: GOLD_COLOR, mr: 1, mt: 0.5 }} />
                     <Box>
-                      <Typography variant="body2">
+                      <Typography variant="body2" sx={{ color: alpha('#fff', 0.9) }}>
                         <strong>Boletins de Ocorrência:</strong>
                       </Typography>
                       <Typography
                         variant="body2"
                         sx={{
                           wordBreak: 'break-word',
-                          bgcolor: 'rgba(255, 215, 0, 0.1)',
-                          p: 1,
+                          bgcolor: alpha(GOLD_COLOR, 0.05),
+                          p: 1.5,
                           borderRadius: 1,
-                          mt: 0.5
+                          mt: 0.5,
+                          color: alpha('#fff', 0.8),
+                          border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
                         }}
                       >
                         {infrator.numeros_do_bo || 'Não informado'}
@@ -507,22 +626,25 @@ const ReincidenciaCPF = () => {
           ))}
         </Grid>
 
-        {/* Paginação - Sem alterações */}
+        {/* Paginação */}
         {totalPages > 1 && (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <Pagination
               count={totalPages}
               page={page}
               onChange={handlePageChange}
-              color="primary"
               size="large"
               sx={{
                 '& .MuiPaginationItem-root': {
-                  color: 'white',
+                  color: alpha('#fff', 0.8),
+                  '&:hover': {
+                    bgcolor: alpha(GOLD_COLOR, 0.15),
+                  }
                 },
                 '& .Mui-selected': {
-                  backgroundColor: 'gold !important',
+                  backgroundColor: `${alpha(GOLD_COLOR, 0.9)} !important`,
                   color: 'black !important',
+                  fontWeight: 'bold'
                 }
               }}
             />
@@ -536,9 +658,25 @@ const ReincidenciaCPF = () => {
         onClose={handleCloseModal}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            background: `linear-gradient(135deg, ${alpha('#1f2937', 0.97)}, ${alpha('#111827', 0.99)})`,
+            backdropFilter: 'blur(10px)',
+            borderRadius: 2,
+            boxShadow: `0 8px 32px 0 ${alpha('#000', 0.37)}`,
+            border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
+          }
+        }}
       >
-        <DialogTitle sx={{ bgcolor: '#2A2A2A', color: 'gold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
+        <DialogTitle sx={{
+          color: GOLD_COLOR,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: `1px solid ${alpha(GOLD_COLOR, 0.2)}`,
+          p: 3
+        }}>
+          <Box sx={{ fontWeight: 'bold' }}>
             Relatório Detalhado de Reincidência
           </Box>
           <Box>
@@ -548,16 +686,18 @@ const ReincidenciaCPF = () => {
               onClick={handleExportPDF}
               disabled={pdfLoading}
               sx={{
-                bgcolor: 'gold',
+                bgcolor: GOLD_COLOR,
                 color: 'black',
+                fontWeight: 'bold',
                 '&:hover': {
-                  bgcolor: '#d4af37',
+                  bgcolor: alpha(GOLD_COLOR, 0.85),
                 },
                 '&.Mui-disabled': {
-                  bgcolor: 'rgba(255, 215, 0, 0.5)',
+                  bgcolor: alpha(GOLD_COLOR, 0.5),
                   color: 'rgba(0, 0, 0, 0.7)'
                 },
-                mr: 1
+                mr: 1,
+                boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
               }}
             >
               {pdfLoading ? 'Gerando...' : 'Exportar PDF'}
@@ -568,15 +708,15 @@ const ReincidenciaCPF = () => {
               onClick={handleExportBWPDF}
               disabled={pdfLoading}
               sx={{
-                borderColor: 'white',
-                color: 'white',
+                borderColor: alpha('#fff', 0.3),
+                color: alpha('#fff', 0.9),
                 '&:hover': {
-                  borderColor: '#d4d4d4',
-                  bgcolor: 'rgba(255, 255, 255, 0.1)'
+                  borderColor: alpha('#fff', 0.5),
+                  bgcolor: alpha('#fff', 0.05)
                 },
                 '&.Mui-disabled': {
-                  borderColor: 'rgba(255, 255, 255, 0.3)',
-                  color: 'rgba(255, 255, 255, 0.3)'
+                  borderColor: alpha('#fff', 0.1),
+                  color: alpha('#fff', 0.3)
                 }
               }}
             >
@@ -584,38 +724,47 @@ const ReincidenciaCPF = () => {
             </Button>
           </Box>
         </DialogTitle>
-        <DialogContent sx={{ bgcolor: '#2A2A2A', px: 4, py: 3 }}>
+
+        <DialogContent sx={{ px: 3, py: 4 }}>
           {selectedInfrator && (
             <Box ref={targetRef}>
               {/* Cabeçalho do Relatório para PDF */}
-              <Box sx={{ textAlign: 'center', mb: 3 }}>
-                <Typography variant="h5" sx={{ color: 'gold', fontWeight: 'bold', mb: 1 }}>
+              <Box sx={{ textAlign: 'center', mb: 4 }}>
+                <Typography variant="h5" sx={{ color: GOLD_COLOR, fontWeight: 'bold', mb: 1 }}>
                   RELATÓRIO DE REINCIDÊNCIA
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#ccc' }}>
+                <Typography variant="body2" sx={{ color: alpha('#fff', 0.7) }}>
                   Sistema FraudBase - Gerado em {new Date().toLocaleString('pt-BR')}
                 </Typography>
-                <Divider sx={{ my: 2, borderColor: 'gold' }} />
+                <Divider sx={{ my: 2, borderColor: alpha(GOLD_COLOR, 0.3) }} />
               </Box>
 
               {/* Informações do Infrator */}
-              <Paper sx={{ p: 3, mb: 3, bgcolor: '#1A1A1A' }}>
-                <Typography variant="h6" sx={{ color: 'gold', mb: 2 }}>
+              <Paper sx={{
+                p: 3,
+                mb: 3,
+                bgcolor: alpha('#000', 0.3),
+                backdropFilter: 'blur(10px)',
+                borderRadius: 2,
+                border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
+              }}>
+                <Typography variant="h6" sx={{ color: GOLD_COLOR, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PersonIcon />
                   Dados do Infrator
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ color: alpha('#fff', 0.9) }}>
                       <strong>Nome Completo:</strong> {selectedInfrator.nomecompleto || 'Não informado'}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ color: alpha('#fff', 0.9) }}>
                       <strong>CPF:</strong> {formatCPF(selectedInfrator.cpf)}
                     </Typography>
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ color: alpha('#fff', 0.9) }}>
                       <strong>Total de Ocorrências:</strong> {selectedInfrator.quantidade}
                     </Typography>
                   </Grid>
@@ -623,23 +772,31 @@ const ReincidenciaCPF = () => {
               </Paper>
 
               {/* Tabela de Boletins de Ocorrência */}
-              <Paper sx={{ p: 3, mb: 3, bgcolor: '#1A1A1A' }}>
-                <Typography variant="h6" sx={{ color: 'gold', mb: 2 }}>
+              <Paper sx={{
+                p: 3,
+                mb: 3,
+                bgcolor: alpha('#000', 0.3),
+                backdropFilter: 'blur(10px)',
+                borderRadius: 2,
+                border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
+              }}>
+                <Typography variant="h6" sx={{ color: GOLD_COLOR, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ListAltIcon />
                   Boletins de Ocorrência Registrados
                 </Typography>
                 <TableContainer>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ color: 'gold', fontWeight: 'bold' }}>#</TableCell>
-                        <TableCell sx={{ color: 'gold', fontWeight: 'bold' }}>Número do BO</TableCell>
+                        <TableCell sx={{ color: GOLD_COLOR, fontWeight: 'bold', borderBottom: `1px solid ${alpha(GOLD_COLOR, 0.2)}` }}>#</TableCell>
+                        <TableCell sx={{ color: GOLD_COLOR, fontWeight: 'bold', borderBottom: `1px solid ${alpha(GOLD_COLOR, 0.2)}` }}>Número do BO</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {getBOArray(selectedInfrator.numeros_do_bo).map((bo, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{bo}</TableCell>
+                        <TableRow key={index} sx={{ '&:hover': { bgcolor: alpha('#fff', 0.05) } }}>
+                          <TableCell sx={{ color: alpha('#fff', 0.8), borderBottom: `1px solid ${alpha('#fff', 0.1)}` }}>{index + 1}</TableCell>
+                          <TableCell sx={{ color: alpha('#fff', 0.8), borderBottom: `1px solid ${alpha('#fff', 0.1)}` }}>{bo}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -648,8 +805,16 @@ const ReincidenciaCPF = () => {
               </Paper>
 
               {/* Análise de Risco */}
-              <Paper sx={{ p: 3, mb: 3, bgcolor: '#1A1A1A' }}>
-                <Typography variant="h6" sx={{ color: 'gold', mb: 2 }}>
+              <Paper sx={{
+                p: 3,
+                mb: 3,
+                bgcolor: alpha('#000', 0.3),
+                backdropFilter: 'blur(10px)',
+                borderRadius: 2,
+                border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
+              }}>
+                <Typography variant="h6" sx={{ color: GOLD_COLOR, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <RepeatIcon />
                   Análise de Risco
                 </Typography>
                 <Grid container spacing={2}>
@@ -657,22 +822,25 @@ const ReincidenciaCPF = () => {
                     <Box sx={{
                       p: 2,
                       borderRadius: 1,
-                      bgcolor: selectedInfrator.quantidade > 5 ? 'rgba(220, 53, 69, 0.2)' :
-                        selectedInfrator.quantidade > 3 ? 'rgba(255, 193, 7, 0.2)' :
-                          'rgba(40, 167, 69, 0.2)',
+                      bgcolor: alpha(
+                        selectedInfrator.quantidade > 5 ? '#dc3545' :
+                          selectedInfrator.quantidade > 3 ? GOLD_COLOR :
+                            '#28a745',
+                        0.1
+                      ),
                       borderLeft: `4px solid ${selectedInfrator.quantidade > 5 ? '#dc3545' :
-                        selectedInfrator.quantidade > 3 ? '#ffc107' :
-                          '#28a745'
+                          selectedInfrator.quantidade > 3 ? GOLD_COLOR :
+                            '#28a745'
                         }`
                     }}>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold', color: alpha('#fff', 0.95) }}>
                         Nível de Reincidência: {
                           selectedInfrator.quantidade > 5 ? 'ALTO' :
                             selectedInfrator.quantidade > 3 ? 'MÉDIO' :
                               'BAIXO'
                         }
                       </Typography>
-                      <Typography variant="body2" sx={{ mt: 1 }}>
+                      <Typography variant="body2" sx={{ mt: 1, color: alpha('#fff', 0.8) }}>
                         {
                           selectedInfrator.quantidade > 5 ? 'Infrator com alto índice de reincidência. Recomenda-se atenção especial.' :
                             selectedInfrator.quantidade > 3 ? 'Infrator com reincidência moderada. Observe com cuidado.' :
@@ -685,11 +853,18 @@ const ReincidenciaCPF = () => {
               </Paper>
 
               {/* Observações */}
-              <Paper sx={{ p: 3, bgcolor: '#1A1A1A' }}>
-                <Typography variant="h6" sx={{ color: 'gold', mb: 2 }}>
+              <Paper sx={{
+                p: 3,
+                bgcolor: alpha('#000', 0.3),
+                backdropFilter: 'blur(10px)',
+                borderRadius: 2,
+                border: `1px solid ${alpha(GOLD_COLOR, 0.1)}`
+              }}>
+                <Typography variant="h6" sx={{ color: GOLD_COLOR, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ListAltIcon />
                   Observações
                 </Typography>
-                <Typography variant="body2">
+                <Typography variant="body2" sx={{ color: alpha('#fff', 0.8) }}>
                   Este relatório apresenta o histórico condensado de reincidência do infrator. Para mais detalhes sobre cada ocorrência,
                   consulte os boletins de ocorrência individuais no sistema.
                 </Typography>
@@ -697,12 +872,23 @@ const ReincidenciaCPF = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ bgcolor: '#2A2A2A' }}>
-          <Button onClick={handleCloseModal} sx={{ color: 'white' }}>
+
+        <DialogActions sx={{ p: 2, borderTop: `1px solid ${alpha(GOLD_COLOR, 0.1)}` }}>
+          <Button
+            onClick={handleCloseModal}
+            sx={{
+              color: alpha('#fff', 0.8),
+              '&:hover': {
+                bgcolor: alpha('#fff', 0.05),
+                color: alpha('#fff', 0.95)
+              }
+            }}
+          >
             Fechar
           </Button>
         </DialogActions>
       </Dialog>
+
       {/* Snackbar para feedback de geração de PDF */}
       <Snackbar
         open={pdfFeedback.open}
@@ -713,7 +899,15 @@ const ReincidenciaCPF = () => {
         <Alert
           onClose={handleCloseFeedback}
           severity={pdfFeedback.severity}
-          sx={{ width: '100%' }}
+          sx={{
+            width: '100%',
+            bgcolor: pdfFeedback.severity === 'success' ? alpha('#28a745', 0.95) : alpha('#dc3545', 0.95),
+            color: '#fff',
+            fontWeight: 'medium',
+            '& .MuiAlert-icon': {
+              color: '#fff'
+            }
+          }}
         >
           {pdfFeedback.message}
         </Alert>
