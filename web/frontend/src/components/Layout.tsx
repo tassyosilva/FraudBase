@@ -8,6 +8,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import PersonIcon from '@mui/icons-material/Person';
 import SearchIcon from '@mui/icons-material/Search';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import UploadFileIcon from '@mui/icons-material/UploadFile'; // Importe este ícone
 
 interface MenuItem {
   text: string;
@@ -18,6 +19,7 @@ interface MenuItem {
     path: string;
   }[];
   adminOnly?: boolean; // Propriedade para marcar itens apenas para administradores
+  id?: string; // Adicionando id para identificação do item ativo
 }
 
 interface LayoutProps {
@@ -40,21 +42,31 @@ export default function Layout({ children }: LayoutProps) {
     {
       text: 'Dashboard',
       icon: <DashboardIcon sx={{ color: 'gold' }} />,
-      path: '/dashboard'
+      path: '/dashboard',
+      id: 'dashboard'
     },
     {
       text: 'Cadastro de Envolvidos',
       icon: <PersonIcon sx={{ color: 'gold' }} />,
-      path: '/cadastro-envolvidos'
+      path: '/cadastro-envolvidos',
+      id: 'cadastroEnvolvidos'
     },
     {
       text: 'Consulta de Envolvidos',
       icon: <SearchIcon sx={{ color: 'gold' }} />,
-      path: '/consulta-envolvidos'
+      path: '/consulta-envolvidos',
+      id: 'consultaEnvolvidos'
+    },
+    {
+      text: 'Upload de Relatório',
+      icon: <UploadFileIcon sx={{ color: 'gold' }} />,
+      path: '/upload-relatorio',
+      id: 'uploadRelatorio'
     },
     {
       text: 'Gráficos Reincidência',
       icon: <AssessmentIcon sx={{ color: 'gold' }} />,
+      id: 'graficosReincidencia',
       subItems: [
         {
           text: 'Reincidência Por CPF',
@@ -70,6 +82,7 @@ export default function Layout({ children }: LayoutProps) {
       text: 'Configurações',
       icon: <SettingsIcon sx={{ color: 'gold' }} />,
       adminOnly: true, // Marcar como apenas para administradores
+      id: 'configuracoes',
       subItems: [
         {
           text: 'Usuários',

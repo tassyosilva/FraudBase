@@ -24,9 +24,18 @@ func NewConsultaRepository(db *sql.DB) *ConsultaRepository {
 
 // FindEnvolvidos busca envolvidos com os filtros especificados
 func (r *ConsultaRepository) FindEnvolvidos(nome, cpf, bo, pix string) ([]models.Envolvido, error) {
-	query := `SELECT id, numero_do_bo, tipo_envolvido, nomecompleto, cpf, nomedamae,
-	nascimento, nacionalidade, naturalidade, uf_envolvido, sexo_envolvido,
-	telefone_envolvido, data_fato, delegacia_responsavel, situacao, natureza
+	query := `SELECT id, numero_do_bo, tipo_envolvido, nomecompleto, cpf, 
+	COALESCE(nomedamae, '') as nomedamae,
+	COALESCE(nascimento, '') as nascimento, 
+	COALESCE(nacionalidade, '') as nacionalidade, 
+	COALESCE(naturalidade, '') as naturalidade, 
+	COALESCE(uf_envolvido, '') as uf_envolvido, 
+	COALESCE(sexo_envolvido, '') as sexo_envolvido,
+	COALESCE(telefone_envolvido, '') as telefone_envolvido, 
+	COALESCE(data_fato, '') as data_fato, 
+	COALESCE(delegacia_responsavel, '') as delegacia_responsavel, 
+	COALESCE(situacao, '') as situacao, 
+	COALESCE(natureza, '') as natureza
 	FROM tabela_estelionato WHERE 1=1`
 
 	var params []interface{}
@@ -99,15 +108,44 @@ func (r *ConsultaRepository) FindEnvolvidos(nome, cpf, bo, pix string) ([]models
 
 // FindEnvolvidoById busca um envolvido específico pelo ID
 func (r *ConsultaRepository) FindEnvolvidoById(id int) (models.Envolvido, error) {
-	query := `SELECT id, numero_do_bo, tipo_envolvido, nomecompleto, cpf, nomedamae,
-              nascimento, nacionalidade, naturalidade, uf_envolvido, sexo_envolvido,
-              telefone_envolvido, data_fato, cep_fato, latitude_fato, longitude_fato,
-              logradouro_fato, numerocasa_fato, bairro_fato, municipio_fato, pais_fato,
-              delegacia_responsavel, situacao, natureza, relato_historico, instituicao_bancaria,
-              endereco_ip, valor, pix_utilizado, numero_conta_bancaria, numero_boleto,
-              processo_banco, numero_agencia_bancaria, cartao, terminal, tipo_pagamento,
-              orgao_concessionaria, veiculo, terminal_conexao, erb, operacao_policial,
-              numero_laudo_pericial
+	query := `SELECT id, numero_do_bo, tipo_envolvido, nomecompleto, cpf, 
+              COALESCE(nomedamae, '') as nomedamae,
+              COALESCE(nascimento, '') as nascimento, 
+              COALESCE(nacionalidade, '') as nacionalidade, 
+              COALESCE(naturalidade, '') as naturalidade, 
+              COALESCE(uf_envolvido, '') as uf_envolvido, 
+              COALESCE(sexo_envolvido, '') as sexo_envolvido,
+              COALESCE(telefone_envolvido, '') as telefone_envolvido, 
+              COALESCE(data_fato, '') as data_fato,
+              COALESCE(cep_fato, '') as cep_fato, 
+              COALESCE(latitude_fato, '') as latitude_fato, 
+              COALESCE(longitude_fato, '') as longitude_fato,
+              COALESCE(logradouro_fato, '') as logradouro_fato, 
+              COALESCE(numerocasa_fato, '') as numerocasa_fato, 
+              COALESCE(bairro_fato, '') as bairro_fato, 
+              COALESCE(municipio_fato, '') as municipio_fato, 
+              COALESCE(pais_fato, '') as pais_fato,
+              COALESCE(delegacia_responsavel, '') as delegacia_responsavel, 
+              COALESCE(situacao, '') as situacao, 
+              COALESCE(natureza, '') as natureza, 
+              COALESCE(relato_historico, '') as relato_historico, 
+              COALESCE(instituicao_bancaria, '') as instituicao_bancaria,
+              COALESCE(endereco_ip, '') as endereco_ip, 
+              COALESCE(valor, '') as valor, 
+              COALESCE(pix_utilizado, '') as pix_utilizado, 
+              COALESCE(numero_conta_bancaria, '') as numero_conta_bancaria, 
+              COALESCE(numero_boleto, '') as numero_boleto,
+              COALESCE(processo_banco, '') as processo_banco, 
+              COALESCE(numero_agencia_bancaria, '') as numero_agencia_bancaria, 
+              COALESCE(cartao, '') as cartao, 
+              COALESCE(terminal, '') as terminal, 
+              COALESCE(tipo_pagamento, '') as tipo_pagamento,
+              COALESCE(orgao_concessionaria, '') as orgao_concessionaria, 
+              COALESCE(veiculo, '') as veiculo, 
+              COALESCE(terminal_conexao, '') as terminal_conexao, 
+              COALESCE(erb, '') as erb, 
+              COALESCE(operacao_policial, '') as operacao_policial,
+              COALESCE(numero_laudo_pericial, '') as numero_laudo_pericial
               FROM tabela_estelionato WHERE id = $1`
 
 	var e models.Envolvido
