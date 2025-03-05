@@ -66,6 +66,8 @@ func main() {
     relatorioHandler := handlers.NewRelatorioHandler(relatorioRepo)
     limpezaRepo := repository.NewLimpezaRepository(db)
     limpezaHandler := handlers.NewLimpezaHandler(limpezaRepo)
+    boStatsRepo := repository.NewBOStatisticsRepository(db)
+    boStatsHandler := handlers.NewBOStatisticsHandler(boStatsRepo)
     
     r := mux.NewRouter()
     
@@ -105,6 +107,8 @@ func main() {
     apiRouter.HandleFunc("/reincidencia/cpf", reincidenciaHandler.GetReincidenciaPorCPF).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/upload-relatorio", relatorioHandler.UploadRelatorio).Methods("POST", "OPTIONS")
     apiRouter.HandleFunc("/clean-duplicates", limpezaHandler.LimparDuplicatasHandler).Methods("POST", "OPTIONS")
+    apiRouter.HandleFunc("/bo-statistics", boStatsHandler.GetBOStatistics).Methods("GET", "OPTIONS")
+
     // adminRouter := apiRouter.PathPrefix("/admin").Subrouter()
     // adminRouter.Use(middleware.AdminOnly)
     // ... rotas de admin
