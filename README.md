@@ -45,7 +45,7 @@ cd "FraudBase"
 docker compose up -d
 ```
 7. Após a finalização, o sistema estará disponível em `http://localhost:8000`. Usuário: `admin`, Senha: `admin`.
-8. Para acesso externo a aplicação pelo ip do servidor, ou no caso de proxy reverso para o servidor, é necessário adicionar a nova origem na lista de origens permitidas no arquivo `main.go`.
+8. Para acesso externo a aplicação pelo ip do servidor (ex.: http://ipdoservidor:8000), ou no caso de proxy reverso para o servidor, é necessário adicionar a nova origem na lista de origens permitidas no arquivo `main.go`.
 9. Para implementar alterações no arquivo main.go e em outros arquivos, é necessário construir uma nova build, ou seja, recomenda-se deletar as imagens criadas (fraudbase-backend e fraudbase-frontend) e subir novamente com o compose.
 
 ### Modo de Desenvolvimento
@@ -76,4 +76,5 @@ npm install
 ```bash
 npm run dev
 ```
-   - A aplicação estará disponível para acesso em `http://localhost:5173`
+   - A aplicação estará disponível para acesso em `http://localhost:5173`. Usuário: `admin`, Senha: `admin`.
+   - Para acesso externo a aplicação pelo ip do servidor (ex.: http://ipdoservidor:5173), ou no caso de proxy reverso para o servidor, é necessário adicionar a nova origem na lista de origens permitidas no arquivo `main.go`.
