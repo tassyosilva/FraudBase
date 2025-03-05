@@ -85,6 +85,7 @@ func main() {
     // Rotas protegidas ao apiRouter
     apiRouter.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE", "OPTIONS")
+    apiRouter.HandleFunc("/users/{id}", userHandler.GetUserByIDHandler).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/users", userHandler.UpdateUser).Methods("PUT", "OPTIONS")
     apiRouter.HandleFunc("/users/password", userHandler.UpdateUserPassword).Methods("PUT", "OPTIONS")
     apiRouter.HandleFunc("/municipios", municipioHandler.GetAllMunicipios).Methods("GET", "OPTIONS")

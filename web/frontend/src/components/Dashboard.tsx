@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
@@ -9,8 +10,8 @@ import Divider from '@mui/material/Divider';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-// import { useNavigate } from 'react-router-dom';
-import { Outlet } from 'react-router-dom';
+import PersonIcon from '@mui/icons-material/Person';
+import { Outlet, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
 interface AppBarProps extends MuiAppBarProps {
@@ -51,16 +52,27 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ children, menu }: DashboardProps) {
-  // const navigate = useNavigate();
-  
+  const navigate = useNavigate();
+  const [userName, setUserName] = useState<string>('');
+
+  // Efeito para obter o nome do usuário do sessionStorage
+  useEffect(() => {
+    const nome = sessionStorage.getItem('nome');
+    if (nome) {
+      setUserName(nome);
+    }
+  }, []);
+
   const handleLogout = () => {
     // Limpar completamente o sessionStorage
     sessionStorage.clear();
-    
     // Forçar uma atualização da página para garantir que todas as referências em memória sejam limpas
     window.location.href = '/';
-    
     // Nota: Usamos window.location.href em vez de navigate para garantir um refresh completo
+  };
+
+  const handleViewProfile = () => {
+    navigate('/profile');
   };
 
   return (
@@ -77,13 +89,43 @@ export default function Dashboard({ children, menu }: DashboardProps) {
           >
             FraudBase
           </Typography>
-          
+
+          {/* Exibição do nome do usuário */}
+          {userName && (
+            <Typography
+              variant="body1"
+              color="white"
+              sx={{ mr: 2 }}
+            >
+              Usuário: {userName}
+            </Typography>
+          )}
+
+          {/* Botão Ver Perfil */}
+          <Button
+            variant="outlined"
+            color="inherit"
+            startIcon={<PersonIcon />}
+            onClick={handleViewProfile}
+            sx={{
+              color: 'white',
+              borderColor: 'gold',
+              mr: 2,
+              '&:hover': {
+                borderColor: 'gold',
+                backgroundColor: 'rgba(255, 215, 0, 0.1)'
+              }
+            }}
+          >
+            Ver Perfil
+          </Button>
+
           <Button
             variant="outlined"
             color="inherit"
             startIcon={<ExitToAppIcon />}
             onClick={handleLogout}
-            sx={{ 
+            sx={{
               color: 'white',
               borderColor: 'gold',
               '&:hover': {

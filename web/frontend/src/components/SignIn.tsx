@@ -44,9 +44,11 @@ export default function SignIn() {
       const result = await response.json();
 
       sessionStorage.setItem('isAuthenticated', 'true');
-      // Garantindo que isAdmin seja convertido para string
       sessionStorage.setItem('isAdmin', result.isAdmin.toString());
       sessionStorage.setItem('token', result.token);
+      sessionStorage.setItem('userId', result.userId.toString());
+      sessionStorage.setItem('username', result.username);
+      sessionStorage.setItem('nome', result.nome);
 
       navigate('/dashboard');
     } catch (err) {
