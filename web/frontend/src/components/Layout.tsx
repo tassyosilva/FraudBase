@@ -8,7 +8,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import PersonIcon from '@mui/icons-material/Person';
 import SearchIcon from '@mui/icons-material/Search';
 import AssessmentIcon from '@mui/icons-material/Assessment';
-import UploadFileIcon from '@mui/icons-material/UploadFile'; // Importe este ícone
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 interface MenuItem {
   text: string;
@@ -18,8 +18,8 @@ interface MenuItem {
     text: string;
     path: string;
   }[];
-  adminOnly?: boolean; // Propriedade para marcar itens apenas para administradores
-  id?: string; // Adicionando id para identificação do item ativo
+  adminOnly?: boolean;
+  id: string; // Tornando id obrigatório
 }
 
 interface LayoutProps {
@@ -27,7 +27,7 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [open, setOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -81,7 +81,7 @@ export default function Layout({ children }: LayoutProps) {
     {
       text: 'Configurações',
       icon: <SettingsIcon sx={{ color: 'gold' }} />,
-      adminOnly: true, // Marcar como apenas para administradores
+      adminOnly: true,
       id: 'configuracoes',
       subItems: [
         {
@@ -99,9 +99,13 @@ export default function Layout({ children }: LayoutProps) {
   // Filtrar os itens do menu com base no status de administrador
   const filteredMenuItems = menuItems.filter(item => !item.adminOnly || isAdmin);
 
+  // Modificar para alternar apenas o estado do menu específico
   const handleClick = (item: MenuItem) => {
     if (item.subItems) {
-      setOpen(!open);
+      setOpenMenus(prev => ({
+        ...prev,
+        [item.id]: !prev[item.id]
+      }));
     } else {
       navigate(item.path || '/');
     }
@@ -115,10 +119,16 @@ export default function Layout({ children }: LayoutProps) {
             <ListItemButton onClick={() => handleClick(item)}>
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
-              {item.subItems && (open ? <ExpandLess /> : <ExpandMore />)}
+              {item.subItems && (
+                openMenus[item.id] ? <ExpandLess /> : <ExpandMore />
+              )}
             </ListItemButton>
             {item.subItems && (
-              <Collapse in={open} timeout="auto" unmountOnExit>
+              <Collapse
+                in={!!openMenus[item.id]}
+                timeout="auto"
+                unmountOnExit
+              >
                 <List component="div" disablePadding>
                   {item.subItems.map((subItem, subIndex) => (
                     <ListItemButton
