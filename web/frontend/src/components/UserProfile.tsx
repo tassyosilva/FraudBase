@@ -34,6 +34,8 @@ import {
 } from '@mui/icons-material';
 import { User } from '../types/User';
 
+import API_BASE_URL from '../config/api';
+
 const UserProfile = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ const UserProfile = () => {
                     return;
                 }
 
-                const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+              const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -108,7 +110,7 @@ const UserProfile = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:8080/api/users/password', {
+          const response = await fetch(`${API_BASE_URL}/users/password`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

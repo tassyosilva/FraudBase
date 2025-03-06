@@ -25,6 +25,8 @@ import InfoIcon from '@mui/icons-material/Info';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
+import API_BASE_URL from '../config/api';
+
 // Cores e temas consistentes
 const GOLD_COLOR = '#FFD700';
 const CARD_BG = '#1e1e1e';
@@ -148,7 +150,7 @@ const UploadRelatorio = () => {
     setStatsError(null);
 
     try {
-      const response = await fetch('http://localhost:8080/api/bo-statistics', {
+      const response = await fetch(`${API_BASE_URL}/bo-statistics`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
@@ -187,7 +189,7 @@ const UploadRelatorio = () => {
     setResult(null);
 
     try {
-      const response = await fetch('http://localhost:8080/api/upload-relatorio', {
+      const response = await fetch(`${API_BASE_URL}/upload-relatorio`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
@@ -227,7 +229,7 @@ const UploadRelatorio = () => {
     setCleanResult(null);
 
     try {
-      const response = await fetch('http://localhost:8080/api/clean-duplicates', {
+      const response = await fetch(`${API_BASE_URL}/clean-duplicates`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`

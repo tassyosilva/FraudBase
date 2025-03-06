@@ -40,6 +40,8 @@ import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 
+import API_BASE_URL from '../config/api';
+
 // Constantes para cores
 const GOLD_COLOR = '#FFD700';
 const DARK_BLUE = '#0A1929';
@@ -228,7 +230,7 @@ const ConsultaEnvolvidos = () => {
       // Alterando o nome do parâmetro para corresponder à coluna no banco de dados
       if (sanitizedFilters.pix) queryParams.append('pix_utilizado', sanitizedFilters.pix);
 
-      const response = await fetch(`http://localhost:8080/api/consulta-envolvidos?${queryParams.toString()}`, {
+      const response = await fetch(`${API_BASE_URL}/consulta-envolvidos?${queryParams.toString()}`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
@@ -274,7 +276,7 @@ const ConsultaEnvolvidos = () => {
   const handleLoadDetails = async (id: number) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8080/api/consulta-envolvidos/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/consulta-envolvidos/${id}`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Paper, TextField, Button, Box, RadioGroup, FormControlLabel, Radio, FormControl, FormLabel, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 
+import API_BASE_URL from '../config/api';
+
 const UserRegister = () => {
   const navigate = useNavigate()
   const [error, setError] = useState('')
@@ -28,7 +30,7 @@ const UserRegister = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await fetch('http://localhost:8080/api/users', {
+      const response = await fetch(`${API_BASE_URL}/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

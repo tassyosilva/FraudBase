@@ -31,6 +31,8 @@ import {
   DocumentScanner
 } from '@mui/icons-material';
 
+import API_BASE_URL from '../config/api';
+
 // Tipos para os dados das estatísticas
 interface SexoStats {
   sexo: string;
@@ -183,42 +185,42 @@ const DashboardContent = () => {
 
       try {
         // Buscar vítimas por sexo
-        const resVitimasPorSexo = await fetch('http://localhost:8080/api/dashboard/vitimas-por-sexo', {
+        const resVitimasPorSexo = await fetch(`${API_BASE_URL}/dashboard/vitimas-por-sexo`, {
           headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
 
         // Buscar vítimas por faixa etária
-        const resVitimasPorFaixaEtaria = await fetch('http://localhost:8080/api/dashboard/vitimas-por-faixa-etaria', {
+        const resVitimasPorFaixaEtaria = await fetch(`${API_BASE_URL}/dashboard/vitimas-por-faixa-etaria`, {
           headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
 
         // Buscar infratores por delegacia
-        const resInfratoresPorDelegacia = await fetch('http://localhost:8080/api/dashboard/infratores-por-delegacia', {
+        const resInfratoresPorDelegacia = await fetch(`${API_BASE_URL}/dashboard/infratores-por-delegacia`, {
           headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
 
         // Buscar quantidade de BOs
-        const resQuantidadeBOs = await fetch('http://localhost:8080/api/dashboard/quantidade-bos', {
+        const resQuantidadeBOs = await fetch(`${API_BASE_URL}/dashboard/quantidade-bos`, {
           headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
 
         // Buscar quantidade de infratores
-        const resQuantidadeInfratores = await fetch('http://localhost:8080/api/dashboard/quantidade-infratores', {
+        const resQuantidadeInfratores = await fetch(`${API_BASE_URL}/dashboard/quantidade-infratores`, {
           headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }
         });
 
         // Buscar quantidade de vítimas
-        const resQuantidadeVitimas = await fetch('http://localhost:8080/api/dashboard/quantidade-vitimas', {
+        const resQuantidadeVitimas = await fetch(`${API_BASE_URL}/dashboard/quantidade-vitimas`, {
           headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('token')}`
           }

@@ -26,6 +26,8 @@ import { User } from '../types/User';
 import EditUserModal from './EditUserModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 
+import API_BASE_URL from '../config/api';
+
 // Cores consistentes
 const GOLD_COLOR = '#FFD700';
 const CARD_BG = '#1e1e1e';
@@ -133,7 +135,7 @@ const UsersList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/users', {
+      const response = await fetch(`${API_BASE_URL}/users`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -171,7 +173,7 @@ const UsersList = () => {
 
   const saveUser = async (updatedUser: User) => {
     try {
-      const response = await fetch('http://localhost:8080/api/users', {
+      const response = await fetch(`${API_BASE_URL}/users`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -208,7 +210,7 @@ const UsersList = () => {
   const confirmDelete = async () => {
     if (!selectedUser) return;
     try {
-      const response = await fetch(`http://localhost:8080/api/users/${selectedUser.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${selectedUser.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

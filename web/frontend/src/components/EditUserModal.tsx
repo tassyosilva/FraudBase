@@ -19,6 +19,8 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { User } from '../types/User';
 
+import API_BASE_URL from '../config/api';
+
 interface EditUserModalProps {
   open: boolean;
   onClose: () => void;
@@ -124,7 +126,7 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
 
       // Se alterou a senha, chamar endpoint específico
       if (changePassword && passwordData.newPassword) {
-        const response = await fetch('http://localhost:8080/api/users/password', {
+        const response = await fetch(`${API_BASE_URL}/users/password`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

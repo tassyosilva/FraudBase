@@ -15,6 +15,8 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
+import API_BASE_URL from '../config/api';
+
 // Tipos de envolvidos
 const tiposEnvolvidos = [
   { value: 'Suposto Autor/infrator', label: 'Suposto Autor/infrator' },
@@ -120,7 +122,7 @@ const CadastroEnvolvidos = () => {
   const fetchMunicipios = async () => {
     setMunicipiosLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/municipios', {
+      const response = await fetch(`${API_BASE_URL}/municipios`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }

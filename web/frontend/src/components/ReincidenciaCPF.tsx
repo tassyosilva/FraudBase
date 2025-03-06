@@ -46,6 +46,8 @@ import { usePDF } from 'react-to-pdf';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+import API_BASE_URL from '../config/api';
+
 // Cor dourada padrão do sistema
 const GOLD_COLOR = '#FFD700';
 
@@ -117,7 +119,7 @@ const ReincidenciaCPF = () => {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:8080/api/reincidencia/cpf?page=${currentPage}&limit=10`, {
+      const response = await fetch(`${API_BASE_URL}/reincidencia/cpf?page=${currentPage}&limit=10`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
