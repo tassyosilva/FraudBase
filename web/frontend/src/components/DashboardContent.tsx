@@ -65,6 +65,12 @@ interface ChartPanelProps {
 // Cores para os gráficos - paleta melhorada
 const COLORS = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c', '#34495e', '#d35400'];
 
+// Cores específicas para o gráfico de sexo
+const SEXO_COLORS: { [key: string]: string } = {
+  'Masculino': '#4285F4', // Azul
+  'Feminino': '#FF69B4', // Rosa (Hot Pink)
+};
+
 // Componente de card estatístico com ícone
 const StatCard = ({ title, value, color, icon: Icon }: StatCardProps) => {
   const theme = useTheme();
@@ -341,7 +347,8 @@ const DashboardContent = () => {
           left: 0,
           right: 0,
           height: '4px',
-          background: 'linear-gradient(90deg, #3498db, #9b59b6, #2ecc71, #f39c12)',
+          background: 'linear-gradient(90deg, rgba(255,215,0,0.7), #FFD700, #f39c12, #FFD700, rgba(255,215,0,0.7))',
+          boxShadow: '0 0 10px rgba(255,215,0,0.3)',
         }
       }}>
         <Typography
@@ -357,7 +364,7 @@ const DashboardContent = () => {
             textShadow: '0 2px 10px rgba(52, 152, 219, 0.3)'
           }}
         >
-          FraudBase - Análise de Dados de Fraudes Eletrônicas
+          FraudBase - Sistema para cruzamento de dados em fraudes
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
           <img
@@ -417,11 +424,11 @@ const DashboardContent = () => {
                   nameKey="sexo"
                   label={({ sexo, percent }) => `${sexo}: ${(percent * 100).toFixed(0)}%`}
                 >
-                  {vitimasPorSexo.map((_entry, index) => (
+                  {vitimasPorSexo.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                      stroke={alpha(COLORS[index % COLORS.length], 0.2)}
+                      fill={SEXO_COLORS[entry.sexo] || COLORS[index % COLORS.length]}
+                      stroke={alpha(SEXO_COLORS[entry.sexo] || COLORS[index % COLORS.length], 0.2)}
                       strokeWidth={2}
                     />
                   ))}
@@ -494,7 +501,7 @@ const DashboardContent = () => {
           </ChartPanel>
         </Grid>
         <Grid item xs={12} sx={{ mt: 1 }}>
-          <ChartPanel title="Top Delegacias com Mais Infratores Registrados" height={400}>
+          <ChartPanel title="Delegacias com Mais Infratores em Apuração" height={400}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={formattedDelegaciaData}

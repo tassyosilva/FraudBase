@@ -273,7 +273,7 @@ export default function Dashboard({ children, menu }: DashboardProps) {
           textAlign: 'center'
         }}>
           <Typography variant="caption" sx={{ color: alpha('#fff', 0.6) }}>
-            © 2023 FraudBase
+            © 2025 FraudBase
           </Typography>
         </Box>
       </Drawer>
