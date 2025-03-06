@@ -26,6 +26,9 @@ CREATE DATABASE fraudbase WITH ENCODING 'UTF8' LC_COLLATE='pt_BR.UTF-8' LC_CTYPE
 - Faça o download do arquivo de backup disponível [aqui](bd_fraudbase) e restaure no banco de dados que foi criado.
 
 ### Modo de Produção
+### Configurações mínimas do servidor 
+
+- Recomenda-se o sistema operacional Ubuntu Server 22.04 ou superior e no mínimo 2 (dois) núcleos dedicados CPU, 2GB de memória RAM e 10GB de armazenamento para os sistemas. Para grande volumes de usuários recomenda-se o dobro da configuração mínima exigida.
 
 - Para executar o sistema em ambiente de produção, utilize o Docker Compose:
 
