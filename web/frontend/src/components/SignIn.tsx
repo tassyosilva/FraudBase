@@ -27,6 +27,8 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import SecurityIcon from '@mui/icons-material/Security';
 
+import API_BASE_URL from '../config/api';
+
 // Constantes para cores
 const GOLD_COLOR = '#FFD700';
 const GOLD_HOVER = '#E5C100';
@@ -197,7 +199,7 @@ export default function SignIn() {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/login', {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

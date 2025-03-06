@@ -19,7 +19,7 @@ func corsMiddleware(next http.Handler) http.Handler {
         allowedOrigins := map[string]bool{
             "http://localhost:5173": true,
             "http://localhost:8000": true,
-            "http://localhost": true,
+            "http://10.0.0.16:8000": true,
         }
         
         // Verifique se a origem está na lista de permitidas
