@@ -150,7 +150,7 @@ const CadastroEnvolvidos = () => {
   const fetchUFs = async () => {
     setUfsLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/ufs', {
+      const response = await fetch(`${API_BASE_URL}/ufs`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
@@ -178,7 +178,7 @@ const CadastroEnvolvidos = () => {
   const fetchPaises = async () => {
     setPaisesLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/paises', {
+      const response = await fetch(`${API_BASE_URL}/paises`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
@@ -206,7 +206,7 @@ const CadastroEnvolvidos = () => {
   const fetchDelegacias = async () => {
     setDelegaciasLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/delegacias', {
+      const response = await fetch(`${API_BASE_URL}/delegacias`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
@@ -234,7 +234,7 @@ const CadastroEnvolvidos = () => {
   const fetchBancos = async () => {
     setBancosLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/bancos', {
+      const response = await fetch(`${API_BASE_URL}/bancos`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
@@ -338,7 +338,7 @@ const CadastroEnvolvidos = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/envolvidos', {
+      const response = await fetch(`${API_BASE_URL}/envolvidos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

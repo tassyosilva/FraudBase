@@ -15,7 +15,7 @@ func corsMiddleware(next http.Handler) http.Handler {
         // Obtenha a origem da requisição
         origin := r.Header.Get("Origin")
         
-        // Lista de origens permitidas
+        // LISTA DE ORIGENS PERMITIDAS
         allowedOrigins := map[string]bool{
             "http://localhost:5173": true,
             "http://localhost:8000": true,
