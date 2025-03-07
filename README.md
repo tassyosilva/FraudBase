@@ -27,7 +27,7 @@ CREATE DATABASE fraudbase WITH ENCODING 'UTF8' LC_COLLATE='pt_BR.UTF-8' LC_CTYPE
 
 ### Modo de Produção
 
-- *CONFIGURAÇÕES MÍNIMAS DO SERVIDOR:* Recomenda-se o sistema operacional Ubuntu Server 22.04 ou superior e no mínimo 2 (dois) núcleos dedicados CPU, 2GB de memória RAM e 10GB de armazenamento para os sistemas. Para grandes volumes de usuários, recomenda-se o dobro da configuração mínima exigida.
+- *CONFIGURAÇÕES MÍNIMAS DO SERVIDOR:* Recomenda-se o sistema operacional Ubuntu Server 22.04 ou superior e no mínimo 2 (dois) núcleos dedicados CPU, 2GB de memória RAM e 10GB de armazenamento para os sistemas (frontend + backend). Para grandes volumes de usuários, recomenda-se o dobro da configuração mínima exigida.
 
 - Para executar o sistema em ambiente de produção, utilize o Docker Compose:
 
