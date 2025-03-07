@@ -1,7 +1,7 @@
 # FraudBase
 - Sistema para cruzamento de dados de envolvidos em fraudes eletrônicas.
  
-> :warning: **Atenção:** Este software não é livre para uso, você pode visualizar o código do projeto, mas deve estar atento à licença de uso restrito do software. [Ver Licença de uso restrito.](https://github.com/tassyosilva/FraudBase/blob/main/LICENSE)
+> :warning: **Atenção:** Este software não é livre para uso, você pode visualizar o código do projeto, mas deve estar atento à licença de uso restrito do software. [Ver Licença de uso restrito.](https://github.com/tassyosilva/FraudBase/tree/main?tab=License-1-ov-file)
 
 ### Sobre o Projeto
 - FraudBase é uma aplicação web completa para cadastro, consulta e análise de ocorrências relacionadas a estelionatos e fraudes ocorridos em âmbito virtual. O sistema permite o gerenciamento de informações detalhadas sobre envolvidos, ocorrências e o cruzamento de dados com o objetivo de verificar a reincidência de infratores nos referidos crimes.
