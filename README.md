@@ -10,8 +10,8 @@
 
 - Instale o PostgreSQL em sua máquina ou utilize um servidor existente.
 
-- Crie um novo banco de dados no usuário de sua preferência.
-- Via pgAdmin:
+- Crie um novo banco de dados no usuário de sua preferência, com codificação UTF8.
+- Se preferir, use a ferramenta de query no pgAdmin:
 ```bash
 CREATE DATABASE fraudbase 
 WITH ENCODING 'UTF8' 
@@ -19,7 +19,7 @@ LC_COLLATE='pt_BR.UTF-8'
 LC_CTYPE='pt_BR.UTF-8'
 TEMPLATE template0;
 ```
-- Via terminal psql:
+- Ou, via terminal psql:
 ```bash
 CREATE DATABASE fraudbase WITH ENCODING 'UTF8' LC_COLLATE='pt_BR.UTF-8' LC_CTYPE='pt_BR.UTF-8' TEMPLATE template0;
 ```
@@ -31,8 +31,8 @@ CREATE DATABASE fraudbase WITH ENCODING 'UTF8' LC_COLLATE='pt_BR.UTF-8' LC_CTYPE
 
 - Para executar o sistema em ambiente de produção, utilize o Docker Compose:
 
-1. Certifique-se que o Docker e Docker Compose estão instalados em seu servidor.
-2. Clone este repositório:
+1. Certifique-se que o Docker e o Docker Compose estão instalados em seu servidor.
+2. Clone este repositório na pasta de sua preferência:
 ```bash
 git clone https://github.com/tassyosilva/FraudBase.git
 ```
@@ -40,22 +40,21 @@ git clone https://github.com/tassyosilva/FraudBase.git
 ```bash
 cd "FraudBase"
 ```
-4. Abra o arquivo `docker-compose.yml`com o nano, configure as variáveis do seu banco de dados e salve.
-5. É necessário adicionar a nova origem (ip do servidor) na lista de origens permitidas no arquivo `main.go` que se encontra na pasta raiz.
-6. Também é necessário adicionar a nova origem (ip do servidor) na linha 6 do arquivo `api.ts`localizado na pasta `web/frontend/src/api.ts`
-7. Você pode inserir sua logomarca alterando o arquivo na pasta `web/frontend/src/assets/logo.png`
-8. Após as configurações, na pasta raiz do FraudBase, execute o comando:
+4. Abra o arquivo `docker-compose.yml` em modo de edição, configure as variáveis do seu banco de dados e salve.
+5. É necessário adicionar a nova origem (endereço do servidor) na lista de origens permitidas no arquivo `main.go` que se encontra na pasta raiz.
+6. Você pode inserir sua logomarca alterando o arquivo na pasta `web/frontend/src/assets/logo.png`
+7. Após as configurações, dentro da pasta raiz do FraudBase execute o comando:
 ```bash
 docker compose up -d
 ```
-7. Após a finalização, o sistema estará disponível em `http://ipdoservidor:8000`. Usuário: `admin`, Senha: `admin`.
+8. Após a finalização, o sistema estará disponível em `http://endereçodoservidor:8000`. Usuário: `admin`, Senha: `admin`.
 
 9. Para implementar novas alterações no arquivo main.go e em outros arquivos, é necessário construir uma nova build, ou seja, recomenda-se deletar as imagens criadas (fraudbase-backend e fraudbase-frontend) e subir novamente com o compose.
 
-10. No caso de proxy reverso refaça as adições de origens dos passos 5 e 6.
+10. No caso de proxy reverso posterior, refaça a adição de origens permitidas do passo 5 e construa uma nova build.
 
 ### Modo de Desenvolvimento
-- Para executar o sistema em ambiente de desenvolvimento:
+- Para executar o sistema em ambiente de desenvolvimento (após clonar o repositório do sistema):
 
 1. **Backend (Go)**:
    - Certifique-se que o Go está instalado (versão 1.23.6+)
