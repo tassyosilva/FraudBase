@@ -149,6 +149,10 @@ export default function Layout({ children }: LayoutProps) {
           path: '/reincidencia-cpf'
         },
         {
+          text: 'Reincidência Por Celular',
+          path: '/reincidencia-celular'
+        },
+        {
           text: 'Reincidência Por PIX',
           path: '/reincidencia-pix'
         }

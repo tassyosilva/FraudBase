@@ -6,13 +6,14 @@ import Layout from './components/Layout'
 import PrivateRoute from './components/PrivateRoute'
 import UsersList from './components/UsersList'
 import UserRegister from './components/UserRegister'
-import UserProfile from './components/UserProfile' // Adicione esta importação
+import UserProfile from './components/UserProfile'
 import { darkTheme } from './theme/darkTheme'
 import CadastroEnvolvidos from './components/CadastroEnvolvidos'
 import ConsultaEnvolvidos from './components/ConsultaEnvolvidos'
 import DashboardContent from './components/DashboardContent'
 import ReincidenciaCPF from './components/ReincidenciaCPF'
 import ReincidenciaPIX from './components/ReincidenciaPIX'
+import ReincidenciaCelular from './components/ReincidenciaCelular'
 import UploadRelatorio from './components/UploadRelatorio'
 
 function App() {
@@ -30,8 +31,9 @@ function App() {
             <Route path="/consulta-envolvidos" element={<ConsultaEnvolvidos />} />
             <Route path="/reincidencia-cpf" element={<ReincidenciaCPF />} />
             <Route path="/reincidencia-pix" element={<ReincidenciaPIX />} />
+            <Route path="/reincidencia-celular" element={<ReincidenciaCelular />} />
             <Route path="/upload-relatorio" element={<UploadRelatorio />} />
-            <Route path="/profile" element={<UserProfile />} /> {/* Nova rota para o perfil do usuário */}
+            <Route path="/profile" element={<UserProfile />} />
           </Route>
         </Routes>
       </Router>
