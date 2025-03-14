@@ -39,6 +39,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
+import PhoneIcon from '@mui/icons-material/Phone';
 
 import API_BASE_URL from '../config/api';
 
@@ -174,7 +175,7 @@ const ConsultaEnvolvidos = () => {
     nome: '',
     cpf: '',
     bo: '',
-    pix: '' // Novo campo para PIX
+    telefone: '' // Modificado de pix para telefone
   });
 
   // Estado para a lista de envolvidos
@@ -218,7 +219,7 @@ const ConsultaEnvolvidos = () => {
         nome: filters.nome ? filters.nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
         cpf: filters.cpf ? filters.cpf.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
         bo: filters.bo ? filters.bo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
-        pix: filters.pix ? filters.pix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '' // Sanitizando o novo campo PIX
+        telefone: filters.telefone ? filters.telefone.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '' // Renomeado de pix para telefone
       };
 
       // Construir query string com os filtros sanitizados
@@ -227,8 +228,8 @@ const ConsultaEnvolvidos = () => {
       if (sanitizedFilters.cpf) queryParams.append('cpf', sanitizedFilters.cpf);
       if (sanitizedFilters.bo) queryParams.append('bo', sanitizedFilters.bo);
 
-      // Alterando o nome do parâmetro para corresponder à coluna no banco de dados
-      if (sanitizedFilters.pix) queryParams.append('pix_utilizado', sanitizedFilters.pix);
+      // Alterando o nome do parâmetro de pix_utilizado para telefone
+      if (sanitizedFilters.telefone) queryParams.append('telefone', sanitizedFilters.telefone);
 
       const response = await fetch(`${API_BASE_URL}/consulta-envolvidos?${queryParams.toString()}`, {
         headers: {
@@ -394,7 +395,7 @@ const ConsultaEnvolvidos = () => {
                 mt: 0.5
               }}
             >
-              Busca detalhada de pessoas envolvidas em ocorrências de estelionato
+              Busca detalhada de pessoas envolvidas em ocorrências de fraudes eletrônicas.
             </Typography>
           </Box>
         </Box>
@@ -490,16 +491,16 @@ const ConsultaEnvolvidos = () => {
             <Grid item xs={12} md={3}>
               <StyledTextField
                 fullWidth
-                label="PIX Utilizado"
-                name="pix"
-                value={filters.pix}
+                label="Telefone/Celular"
+                name="telefone"
+                value={filters.telefone}
                 onChange={handleFilterChange}
                 variant="outlined"
-                placeholder="Digite o PIX utilizado"
+                placeholder="Digite o nº do telefone/celular"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <AccountBalanceIcon sx={{ color: alpha(GOLD_COLOR, 0.7) }} />
+                      <PhoneIcon sx={{ color: alpha(GOLD_COLOR, 0.7) }} />
                     </InputAdornment>
                   ),
                 }}

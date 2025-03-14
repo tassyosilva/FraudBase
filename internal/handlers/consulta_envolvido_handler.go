@@ -28,16 +28,16 @@ func (h *ConsultaEnvolvidoHandler) GetEnvolvidos(w http.ResponseWriter, r *http.
 	nome := queryParams.Get("nome")
 	cpf := queryParams.Get("cpf")
 	bo := queryParams.Get("bo")
-	pix := queryParams.Get("pix_utilizado") // Adicionar parâmetro do PIX
-
+	telefone := queryParams.Get("telefone") // Alterado de pix_utilizado para telefone
+	
 	// Buscar envolvidos no repositório
-	envolvidos, err := h.consultaRepo.FindEnvolvidos(nome, cpf, bo, pix) // Passar o novo parâmetro
+	envolvidos, err := h.consultaRepo.FindEnvolvidos(nome, cpf, bo, telefone) // Passar telefone em vez de pix
 	if err != nil {
 		log.Printf("Erro ao buscar envolvidos: %v", err)
 		http.Error(w, "Erro ao buscar envolvidos", http.StatusInternalServerError)
 		return
 	}
-
+	
 	// Retornar os resultados como JSON
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(envolvidos); err != nil {
@@ -46,6 +46,7 @@ func (h *ConsultaEnvolvidoHandler) GetEnvolvidos(w http.ResponseWriter, r *http.
 		return
 	}
 }
+
 // GetEnvolvidoById busca um envolvido específico pelo ID
 func (h *ConsultaEnvolvidoHandler) GetEnvolvidoById(w http.ResponseWriter, r *http.Request) {
 	log.Println("Recebida requisição para buscar detalhes de envolvido")
@@ -61,7 +62,7 @@ func (h *ConsultaEnvolvidoHandler) GetEnvolvidoById(w http.ResponseWriter, r *ht
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
-
+	
 	// Buscar envolvido pelo ID
 	envolvido, err := h.consultaRepo.FindEnvolvidoById(id)
 	if err != nil {
@@ -73,7 +74,7 @@ func (h *ConsultaEnvolvidoHandler) GetEnvolvidoById(w http.ResponseWriter, r *ht
 		}
 		return
 	}
-
+	
 	// Retornar o envolvido como JSON
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(envolvido); err != nil {
