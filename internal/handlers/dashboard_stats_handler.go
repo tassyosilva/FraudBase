@@ -24,7 +24,9 @@ func (h *DashboardStatsHandler) GetVitimasPorSexo(w http.ResponseWriter, r *http
 	stats, err := h.dashRepo.GetVitimasPorSexo()
 	if err != nil {
 		log.Printf("Erro ao buscar estatísticas de vítimas por sexo: %v", err)
-		http.Error(w, "Erro ao buscar estatísticas", http.StatusInternalServerError)
+		// Mesmo com erro, retornar um array vazio em vez de erro HTTP
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]repository.SexoStats{})
 		return
 	}
 
@@ -43,7 +45,9 @@ func (h *DashboardStatsHandler) GetVitimasPorFaixaEtaria(w http.ResponseWriter, 
 	stats, err := h.dashRepo.GetVitimasPorFaixaEtaria()
 	if err != nil {
 		log.Printf("Erro ao buscar estatísticas de vítimas por faixa etária: %v", err)
-		http.Error(w, "Erro ao buscar estatísticas", http.StatusInternalServerError)
+		// Mesmo com erro, retornar um array vazio em vez de erro HTTP
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]repository.FaixaEtariaStats{})
 		return
 	}
 
@@ -62,7 +66,9 @@ func (h *DashboardStatsHandler) GetQuantidadeBOs(w http.ResponseWriter, r *http.
 	stats, err := h.dashRepo.GetQuantidadeBOs()
 	if err != nil {
 		log.Printf("Erro ao buscar quantidade de BOs: %v", err)
-		http.Error(w, "Erro ao buscar estatísticas", http.StatusInternalServerError)
+		// Mesmo com erro, retornar um objeto com quantidade zero
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(repository.CountStats{Quantidade: 0})
 		return
 	}
 
@@ -81,7 +87,9 @@ func (h *DashboardStatsHandler) GetQuantidadeInfratores(w http.ResponseWriter, r
 	stats, err := h.dashRepo.GetQuantidadeInfratores()
 	if err != nil {
 		log.Printf("Erro ao buscar quantidade de infratores: %v", err)
-		http.Error(w, "Erro ao buscar estatísticas", http.StatusInternalServerError)
+		// Mesmo com erro, retornar um objeto com quantidade zero
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(repository.CountStats{Quantidade: 0})
 		return
 	}
 
@@ -100,7 +108,9 @@ func (h *DashboardStatsHandler) GetQuantidadeVitimas(w http.ResponseWriter, r *h
 	stats, err := h.dashRepo.GetQuantidadeVitimas()
 	if err != nil {
 		log.Printf("Erro ao buscar quantidade de vítimas: %v", err)
-		http.Error(w, "Erro ao buscar estatísticas", http.StatusInternalServerError)
+		// Mesmo com erro, retornar um objeto com quantidade zero
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(repository.CountStats{Quantidade: 0})
 		return
 	}
 
@@ -119,7 +129,9 @@ func (h *DashboardStatsHandler) GetInfratoresPorDelegacia(w http.ResponseWriter,
     stats, err := h.dashRepo.GetInfratoresPorDelegacia()
     if err != nil {
         log.Printf("Erro ao buscar estatísticas de infratores por delegacia: %v", err)
-        http.Error(w, "Erro ao buscar estatísticas", http.StatusInternalServerError)
+        // Mesmo com erro, retornar um array vazio em vez de erro HTTP
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode([]repository.InfratoresPorDelegaciaStats{})
         return
     }
 

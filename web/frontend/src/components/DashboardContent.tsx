@@ -8,7 +8,8 @@ import {
   CardContent,
   CircularProgress,
   alpha,
-  useTheme
+  useTheme,
+  Alert
 } from '@mui/material';
 import {
   PieChart,
@@ -28,7 +29,8 @@ import {
   TrendingUp,
   People,
   PersonSearch,
-  DocumentScanner
+  DocumentScanner,
+  InfoOutlined
 } from '@mui/icons-material';
 
 import API_BASE_URL from '../config/api';
@@ -62,6 +64,7 @@ interface ChartPanelProps {
   title: string;
   children: React.ReactNode;
   height?: number;
+  isEmpty?: boolean; // Nova prop para indicar se os dados estão vazios
 }
 
 // Cores para os gráficos - paleta melhorada
@@ -126,7 +129,7 @@ const StatCard = ({ title, value, color, icon: Icon }: StatCardProps) => {
 };
 
 // Componente para os painéis de gráficos
-const ChartPanel = ({ title, children, height = 300 }: ChartPanelProps) => {
+const ChartPanel = ({ title, children, height = 300, isEmpty = false }: ChartPanelProps) => {
   const theme = useTheme();
 
   return (
@@ -160,7 +163,28 @@ const ChartPanel = ({ title, children, height = 300 }: ChartPanelProps) => {
         {title}
       </Typography>
       <Box sx={{ height }}>
-        {children}
+        {isEmpty ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%'
+            }}
+          >
+            <InfoOutlined sx={{ fontSize: 40, color: alpha('#fff', 0.3), mb: 2 }} />
+            <Typography
+              variant="body1"
+              textAlign="center"
+              sx={{ color: alpha('#fff', 0.5) }}
+            >
+              Sem dados suficientes para visualização
+            </Typography>
+          </Box>
+        ) : (
+          children
+        )}
       </Box>
     </Paper>
   );
@@ -176,6 +200,14 @@ const DashboardContent = () => {
   const [quantidadeVitimas, setQuantidadeVitimas] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasData, setHasData] = useState<boolean>(true); // Estado para indicar se há dados disponíveis
+
+  // Função para verificar se os dados são significativos
+  const hasMeaningfulData = (data: any[]): boolean => {
+    if (!data || data.length === 0) return false;
+    // Verifica se todos os itens têm quantidade zero
+    return !data.every(item => item.quantidade === 0);
+  };
 
   // Buscar dados das APIs
   useEffect(() => {
@@ -226,6 +258,7 @@ const DashboardContent = () => {
           }
         });
 
+        // Verificar se todas as respostas foram bem-sucedidas
         if (!resVitimasPorSexo.ok || !resVitimasPorFaixaEtaria.ok || !resInfratoresPorDelegacia.ok ||
           !resQuantidadeBOs.ok || !resQuantidadeInfratores.ok || !resQuantidadeVitimas.ok) {
           throw new Error('Erro ao buscar dados para o dashboard');
@@ -238,15 +271,27 @@ const DashboardContent = () => {
         const dataInfratores = await resQuantidadeInfratores.json();
         const dataVitimas = await resQuantidadeVitimas.json();
 
-        setVitimasPorSexo(dataSexo);
-        setVitimasPorFaixaEtaria(dataFaixaEtaria);
-        setInfratoresPorDelegacia(dataDelegacia);
-        setQuantidadeBOs(dataBOs.quantidade);
-        setQuantidadeInfratores(dataInfratores.quantidade);
-        setQuantidadeVitimas(dataVitimas.quantidade);
+        setVitimasPorSexo(dataSexo || []);
+        setVitimasPorFaixaEtaria(dataFaixaEtaria || []);
+        setInfratoresPorDelegacia(dataDelegacia || []);
+        setQuantidadeBOs(dataBOs?.quantidade || 0);
+        setQuantidadeInfratores(dataInfratores?.quantidade || 0);
+        setQuantidadeVitimas(dataVitimas?.quantidade || 0);
+
+        // Verificar se há dados significativos
+        const hasAnyData = (dataBOs?.quantidade > 0 || dataInfratores?.quantidade > 0 || dataVitimas?.quantidade > 0);
+        setHasData(hasAnyData);
+
       } catch (err) {
         console.error('Erro ao buscar dados:', err);
         setError('Erro ao carregar dados do dashboard');
+        // Em caso de erro, definir todos com valores padrão vazios
+        setVitimasPorSexo([]);
+        setVitimasPorFaixaEtaria([]);
+        setInfratoresPorDelegacia([]);
+        setQuantidadeBOs(0);
+        setQuantidadeInfratores(0);
+        setQuantidadeVitimas(0);
       } finally {
         setLoading(false);
       }
@@ -266,6 +311,11 @@ const DashboardContent = () => {
     ...item,
     fill: COLORS[index % COLORS.length]
   }));
+
+  // Verificar significância de cada conjunto de dados
+  const hasSexoData = hasMeaningfulData(vitimasPorSexo);
+  const hasFaixaEtariaData = hasMeaningfulData(vitimasPorFaixaEtaria);
+  const hasDelegaciaData = hasMeaningfulData(infratoresPorDelegacia);
 
   if (loading) {
     return (
@@ -380,6 +430,26 @@ const DashboardContent = () => {
         </Box>
       </Paper>
 
+      {/* Alerta de dados insuficientes */}
+      {!hasData && (
+        <Alert
+          severity="info"
+          sx={{
+            mx: 3,
+            mb: 4,
+            backdropFilter: 'blur(10px)',
+            backgroundColor: alpha('#1976d2', 0.1),
+            color: alpha('#fff', 0.9),
+            border: `1px solid ${alpha('#1976d2', 0.3)}`,
+            '& .MuiAlert-icon': {
+              color: '#3498db'
+            }
+          }}
+        >
+          Não há dados suficientes no sistema. Os gráficos serão exibidos quando houver informações disponíveis.
+        </Alert>
+      )}
+
       {/* Cards com estatísticas */}
       <Grid container spacing={3} sx={{ mb: 4, px: 2 }}>
         <Grid item xs={12} md={4}>
@@ -411,144 +481,150 @@ const DashboardContent = () => {
       {/* Gráficos */}
       <Grid container spacing={3} sx={{ px: 2 }}>
         <Grid item xs={12} md={6}>
-          <ChartPanel title="Distribuição de Vítimas por Sexo">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={vitimasPorSexo}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={100}
-                  innerRadius={60}
-                  paddingAngle={5}
-                  dataKey="quantidade"
-                  nameKey="sexo"
-                  label={({ sexo, percent }) => `${sexo}: ${(percent * 100).toFixed(0)}%`}
-                >
-                  {vitimasPorSexo.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={SEXO_COLORS[entry.sexo] || COLORS[index % COLORS.length]}
-                      stroke={alpha(SEXO_COLORS[entry.sexo] || COLORS[index % COLORS.length], 0.2)}
-                      strokeWidth={2}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => [`${value} vítimas`, 'Quantidade']}
-                  contentStyle={{
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(30,30,30,0.9)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
-                  }}
-                  itemStyle={{ color: '#fff' }}
-                />
-                <Legend
-                  layout="horizontal"
-                  verticalAlign="bottom"
-                  align="center"
-                  wrapperStyle={{ paddingTop: '20px' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+          <ChartPanel title="Distribuição de Vítimas por Sexo" isEmpty={!hasSexoData}>
+            {hasSexoData && (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={vitimasPorSexo}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={100}
+                    innerRadius={60}
+                    paddingAngle={5}
+                    dataKey="quantidade"
+                    nameKey="sexo"
+                    label={({ sexo, percent }) => `${sexo}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {vitimasPorSexo.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={SEXO_COLORS[entry.sexo] || COLORS[index % COLORS.length]}
+                        stroke={alpha(SEXO_COLORS[entry.sexo] || COLORS[index % COLORS.length], 0.2)}
+                        strokeWidth={2}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => [`${value} vítimas`, 'Quantidade']}
+                    contentStyle={{
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(30,30,30,0.9)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                    }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Legend
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="center"
+                    wrapperStyle={{ paddingTop: '20px' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </ChartPanel>
         </Grid>
         <Grid item xs={12} md={6}>
-          <ChartPanel title="Distribuição de Vítimas por Faixa Etária">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={formattedFaixaEtariaData}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 70,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke={alpha('#fff', 0.1)} />
-                <XAxis
-                  dataKey="faixa_etaria"
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  tick={{ fontSize: 12, fill: alpha('#fff', 0.7) }}
-                  stroke={alpha('#fff', 0.2)}
-                />
-                <YAxis stroke={alpha('#fff', 0.2)} tick={{ fill: alpha('#fff', 0.7) }} />
-                <Tooltip
-                  formatter={(value) => [`${value} vítimas`, 'Quantidade']}
-                  contentStyle={{
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(30,30,30,0.9)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          <ChartPanel title="Distribuição de Vítimas por Faixa Etária" isEmpty={!hasFaixaEtariaData}>
+            {hasFaixaEtariaData && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={formattedFaixaEtariaData}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 70,
                   }}
-                  cursor={{ fill: alpha('#fff', 0.05) }}
-                  itemStyle={{ color: '#fff' }}
-                />
-                <Legend
-                  wrapperStyle={{ paddingTop: '20px' }}
-                />
-                <Bar
-                  dataKey="quantidade"
-                  name="Quantidade de Vítimas"
-                  radius={[4, 4, 0, 0]}
-                  barSize={30}
-                  animationDuration={1500}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke={alpha('#fff', 0.1)} />
+                  <XAxis
+                    dataKey="faixa_etaria"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    tick={{ fontSize: 12, fill: alpha('#fff', 0.7) }}
+                    stroke={alpha('#fff', 0.2)}
+                  />
+                  <YAxis stroke={alpha('#fff', 0.2)} tick={{ fill: alpha('#fff', 0.7) }} />
+                  <Tooltip
+                    formatter={(value) => [`${value} vítimas`, 'Quantidade']}
+                    contentStyle={{
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(30,30,30,0.9)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                    }}
+                    cursor={{ fill: alpha('#fff', 0.05) }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Legend
+                    wrapperStyle={{ paddingTop: '20px' }}
+                  />
+                  <Bar
+                    dataKey="quantidade"
+                    name="Quantidade de Vítimas"
+                    radius={[4, 4, 0, 0]}
+                    barSize={30}
+                    animationDuration={1500}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </ChartPanel>
         </Grid>
         <Grid item xs={12} sx={{ mt: 1 }}>
-          <ChartPanel title="Delegacias com Mais Infratores em Apuração" height={400}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={formattedDelegaciaData}
-                layout="vertical"
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 150,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke={alpha('#fff', 0.1)} />
-                <XAxis
-                  type="number"
-                  stroke={alpha('#fff', 0.2)}
-                  tick={{ fill: alpha('#fff', 0.7) }}
-                />
-                <YAxis
-                  dataKey="delegacia_responsavel"
-                  type="category"
-                  tick={{ fontSize: 12, fill: alpha('#fff', 0.7) }}
-                  width={140}
-                  stroke={alpha('#fff', 0.2)}
-                />
-                <Tooltip
-                  formatter={(value) => [`${value} infratores`, 'Quantidade']}
-                  contentStyle={{
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(30,30,30,0.9)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          <ChartPanel title="Delegacias com Mais Infratores em Apuração" height={400} isEmpty={!hasDelegaciaData}>
+            {hasDelegaciaData && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={formattedDelegaciaData}
+                  layout="vertical"
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 150,
+                    bottom: 5,
                   }}
-                  cursor={{ fill: alpha('#fff', 0.05) }}
-                  itemStyle={{ color: '#fff' }}
-                />
-                <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                <Bar
-                  dataKey="quantidade"
-                  name="Quantidade de Infratores"
-                  radius={[0, 4, 4, 0]}
-                  animationDuration={1500}
-                  barSize={20}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke={alpha('#fff', 0.1)} />
+                  <XAxis
+                    type="number"
+                    stroke={alpha('#fff', 0.2)}
+                    tick={{ fill: alpha('#fff', 0.7) }}
+                  />
+                  <YAxis
+                    dataKey="delegacia_responsavel"
+                    type="category"
+                    tick={{ fontSize: 12, fill: alpha('#fff', 0.7) }}
+                    width={140}
+                    stroke={alpha('#fff', 0.2)}
+                  />
+                  <Tooltip
+                    formatter={(value) => [`${value} infratores`, 'Quantidade']}
+                    contentStyle={{
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(30,30,30,0.9)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                    }}
+                    cursor={{ fill: alpha('#fff', 0.05) }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                  <Bar
+                    dataKey="quantidade"
+                    name="Quantidade de Infratores"
+                    radius={[0, 4, 4, 0]}
+                    animationDuration={1500}
+                    barSize={20}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </ChartPanel>
         </Grid>
       </Grid>

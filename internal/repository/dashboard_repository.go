@@ -20,6 +20,12 @@ type CountStats struct {
 	Quantidade int `json:"quantidade"`
 }
 
+// InfratoresPorDelegaciaStats representa estatísticas de infratores por delegacia
+type InfratoresPorDelegaciaStats struct {
+    DelegaciaResponsavel string `json:"delegacia_responsavel"`
+    Quantidade          int    `json:"quantidade"`
+}
+
 // DashboardRepository manipula consultas de estatísticas para o dashboard
 type DashboardRepository struct {
 	db *sql.DB
@@ -57,7 +63,7 @@ func (r *DashboardRepository) GetVitimasPorSexo() ([]SexoStats, error) {
 	rows, err := r.db.Query(query)
 	if err != nil {
 		log.Printf("Erro ao consultar vítimas por sexo: %v", err)
-		return nil, err
+		return []SexoStats{}, err
 	}
 	defer rows.Close()
 
@@ -66,9 +72,17 @@ func (r *DashboardRepository) GetVitimasPorSexo() ([]SexoStats, error) {
 		var stat SexoStats
 		if err := rows.Scan(&stat.Sexo, &stat.Quantidade); err != nil {
 			log.Printf("Erro ao processar resultado: %v", err)
-			return nil, err
+			return []SexoStats{}, err
 		}
 		stats = append(stats, stat)
+	}
+
+	// Se não houver resultados, retorne dados padrão
+	if len(stats) == 0 {
+		stats = []SexoStats{
+			{Sexo: "Masculino", Quantidade: 0},
+			{Sexo: "Feminino", Quantidade: 0},
+		}
 	}
 
 	return stats, nil
@@ -102,7 +116,7 @@ func (r *DashboardRepository) GetVitimasPorFaixaEtaria() ([]FaixaEtariaStats, er
 	rows, err := r.db.Query(query)
 	if err != nil {
 		log.Printf("Erro ao consultar vítimas por faixa etária: %v", err)
-		return nil, err
+		return []FaixaEtariaStats{}, err
 	}
 	defer rows.Close()
 
@@ -111,9 +125,19 @@ func (r *DashboardRepository) GetVitimasPorFaixaEtaria() ([]FaixaEtariaStats, er
 		var stat FaixaEtariaStats
 		if err := rows.Scan(&stat.FaixaEtaria, &stat.Quantidade); err != nil {
 			log.Printf("Erro ao processar resultado: %v", err)
-			return nil, err
+			return []FaixaEtariaStats{}, err
 		}
 		stats = append(stats, stat)
+	}
+
+	// Se não houver resultados, retorne dados padrão
+	if len(stats) == 0 {
+		stats = []FaixaEtariaStats{
+			{FaixaEtaria: "Menores ou igual a 20 anos", Quantidade: 0},
+			{FaixaEtaria: "De 21 a 40 anos", Quantidade: 0},
+			{FaixaEtaria: "De 41 a 60 anos", Quantidade: 0},
+			{FaixaEtaria: "Maiores de 60 anos", Quantidade: 0},
+		}
 	}
 
 	return stats, nil
@@ -132,7 +156,8 @@ func (r *DashboardRepository) GetQuantidadeBOs() (CountStats, error) {
 	err := r.db.QueryRow(query).Scan(&stats.Quantidade)
 	if err != nil {
 		log.Printf("Erro ao consultar quantidade de BOs: %v", err)
-		return CountStats{}, err
+		// Em caso de erro, retorna quantidade zero em vez de falhar
+		return CountStats{Quantidade: 0}, nil
 	}
 
 	return stats, nil
@@ -153,7 +178,8 @@ func (r *DashboardRepository) GetQuantidadeInfratores() (CountStats, error) {
 	err := r.db.QueryRow(query).Scan(&stats.Quantidade)
 	if err != nil {
 		log.Printf("Erro ao consultar quantidade de infratores: %v", err)
-		return CountStats{}, err
+		// Em caso de erro, retorna quantidade zero em vez de falhar
+		return CountStats{Quantidade: 0}, nil
 	}
 
 	return stats, nil
@@ -174,16 +200,11 @@ func (r *DashboardRepository) GetQuantidadeVitimas() (CountStats, error) {
 	err := r.db.QueryRow(query).Scan(&stats.Quantidade)
 	if err != nil {
 		log.Printf("Erro ao consultar quantidade de vítimas: %v", err)
-		return CountStats{}, err
+		// Em caso de erro, retorna quantidade zero em vez de falhar
+		return CountStats{Quantidade: 0}, nil
 	}
 
 	return stats, nil
-}
-
-// InfratoresPorDelegaciaStats representa estatísticas de infratores por delegacia
-type InfratoresPorDelegaciaStats struct {
-    DelegaciaResponsavel string `json:"delegacia_responsavel"`
-    Quantidade          int    `json:"quantidade"`
 }
 
 // GetInfratoresPorDelegacia retorna estatísticas de infratores por delegacia responsável
@@ -207,7 +228,7 @@ func (r *DashboardRepository) GetInfratoresPorDelegacia() ([]InfratoresPorDelega
     rows, err := r.db.Query(query)
     if err != nil {
         log.Printf("Erro ao consultar infratores por delegacia: %v", err)
-        return nil, err
+        return []InfratoresPorDelegaciaStats{}, err
     }
     defer rows.Close()
 
@@ -216,9 +237,16 @@ func (r *DashboardRepository) GetInfratoresPorDelegacia() ([]InfratoresPorDelega
         var stat InfratoresPorDelegaciaStats
         if err := rows.Scan(&stat.DelegaciaResponsavel, &stat.Quantidade); err != nil {
             log.Printf("Erro ao processar resultado: %v", err)
-            return nil, err
+            return []InfratoresPorDelegaciaStats{}, err
         }
         stats = append(stats, stat)
+    }
+
+    // Se não houver resultados, retorne um array com um item "Sem dados"
+    if len(stats) == 0 {
+        stats = []InfratoresPorDelegaciaStats{
+            {DelegaciaResponsavel: "Sem dados", Quantidade: 0},
+        }
     }
 
     return stats, nil
