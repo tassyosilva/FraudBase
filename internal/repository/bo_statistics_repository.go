@@ -22,48 +22,69 @@ func NewBOStatisticsRepository(db *sql.DB) *BOStatisticsRepository {
 	}
 }
 
-// BuscarUltimosCincoBOs retorna os 5 BOs mais recentes
-func (r *BOStatisticsRepository) BuscarUltimosCincoBOs() ([]BOData, error) {
-	var resultados []BOData
-
+// BuscarUltimosCincoBOs retorna os 5 BOs mais recentes considerando o formato número/ano
+func (r *BOStatisticsRepository) BuscarUltimosCincoBOs() ([]*BOData, error) {
+	var resultados []*BOData
+	
+	// Query modificada para ordenar corretamente pelo ano e depois pelo número
 	query := `
-		SELECT numero_do_bo
+	WITH parsed_bo AS (
+		SELECT 
+			numero_do_bo,
+			-- Extrair o ano (assumindo formato XXXX/YYYY ou XXXX/YYYY-X)
+			CAST(SUBSTRING(numero_do_bo FROM POSITION('/' IN numero_do_bo) + 1 FOR 4) AS INTEGER) AS ano,
+			-- Extrair o número (assumindo que está no início)
+			CAST(SUBSTRING(numero_do_bo FROM 1 FOR POSITION('/' IN numero_do_bo) - 1) AS INTEGER) AS numero
 		FROM tabela_estelionato
-		ORDER BY numero_do_bo DESC
-		LIMIT 5
+		WHERE 
+			numero_do_bo ~ E'^\\d+/\\d{4}(-[A-Z])?$' -- Validar formato
+	)
+	SELECT numero_do_bo
+	FROM parsed_bo
+	ORDER BY ano DESC, numero DESC
+	LIMIT 5;
 	`
-
+	
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao consultar últimos BOs: %v", err)
 	}
 	defer rows.Close()
-
+	
 	for rows.Next() {
-		var bo BOData
-
+		bo := &BOData{}
 		err := rows.Scan(&bo.NumeroBO)
 		if err != nil {
 			return nil, fmt.Errorf("erro ao ler dados do BO: %v", err)
 		}
-
 		resultados = append(resultados, bo)
 	}
-
+	
 	return resultados, nil
 }
 
-// BuscarBOMaisAntigo retorna o BO mais antigo registrado
+// BuscarBOMaisAntigo retorna o BO mais antigo registrado considerando o formato número/ano
 func (r *BOStatisticsRepository) BuscarBOMaisAntigo() (*BOData, error) {
+	// Query modificada para ordenar corretamente pelo ano e depois pelo número
 	query := `
-		SELECT numero_do_bo
+	WITH parsed_bo AS (
+		SELECT 
+			numero_do_bo,
+			-- Extrair o ano (assumindo formato XXXX/YYYY ou XXXX/YYYY-X)
+			CAST(SUBSTRING(numero_do_bo FROM POSITION('/' IN numero_do_bo) + 1 FOR 4) AS INTEGER) AS ano,
+			-- Extrair o número (assumindo que está no início)
+			CAST(SUBSTRING(numero_do_bo FROM 1 FOR POSITION('/' IN numero_do_bo) - 1) AS INTEGER) AS numero
 		FROM tabela_estelionato
-		ORDER BY numero_do_bo ASC
-		LIMIT 1
+		WHERE 
+			numero_do_bo ~ E'^\\d+/\\d{4}(-[A-Z])?$' -- Validar formato
+	)
+	SELECT numero_do_bo
+	FROM parsed_bo
+	ORDER BY ano ASC, numero ASC
+	LIMIT 1;
 	`
-
-	var bo BOData
-
+	
+	bo := &BOData{}
 	err := r.db.QueryRow(query).Scan(&bo.NumeroBO)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -71,6 +92,6 @@ func (r *BOStatisticsRepository) BuscarBOMaisAntigo() (*BOData, error) {
 		}
 		return nil, fmt.Errorf("erro ao consultar BO mais antigo: %v", err)
 	}
-
-	return &bo, nil
+	
+	return bo, nil
 }
