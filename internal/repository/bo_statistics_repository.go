@@ -22,11 +22,9 @@ func NewBOStatisticsRepository(db *sql.DB) *BOStatisticsRepository {
 	}
 }
 
-// BuscarUltimosCincoBOs retorna os 5 BOs mais recentes considerando o formato número/ano
-func (r *BOStatisticsRepository) BuscarUltimosCincoBOs() ([]*BOData, error) {
-	var resultados []*BOData
-	
-	// Query modificada para ordenar corretamente pelo ano e depois pelo número
+// BuscarBOMaisNovo retorna o BO mais recente considerando o formato número/ano
+func (r *BOStatisticsRepository) BuscarBOMaisNovo() (*BOData, error) {
+	// Query para encontrar o BO mais recente, ordenando por ano e número
 	query := `
 	WITH parsed_bo AS (
 		SELECT 
@@ -42,25 +40,19 @@ func (r *BOStatisticsRepository) BuscarUltimosCincoBOs() ([]*BOData, error) {
 	SELECT numero_do_bo
 	FROM parsed_bo
 	ORDER BY ano DESC, numero DESC
-	LIMIT 5;
+	LIMIT 1;
 	`
 	
-	rows, err := r.db.Query(query)
+	bo := &BOData{}
+	err := r.db.QueryRow(query).Scan(&bo.NumeroBO)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao consultar últimos BOs: %v", err)
-	}
-	defer rows.Close()
-	
-	for rows.Next() {
-		bo := &BOData{}
-		err := rows.Scan(&bo.NumeroBO)
-		if err != nil {
-			return nil, fmt.Errorf("erro ao ler dados do BO: %v", err)
+		if err == sql.ErrNoRows {
+			return nil, nil // Nenhum BO encontrado
 		}
-		resultados = append(resultados, bo)
+		return nil, fmt.Errorf("erro ao consultar BO mais recente: %v", err)
 	}
 	
-	return resultados, nil
+	return bo, nil
 }
 
 // BuscarBOMaisAntigo retorna o BO mais antigo registrado considerando o formato número/ano

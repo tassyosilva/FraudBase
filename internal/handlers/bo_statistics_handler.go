@@ -21,8 +21,8 @@ func NewBOStatisticsHandler(boStatsRepo *repository.BOStatisticsRepository) *BOS
 
 // BOStatisticsResponse estrutura da resposta para estatísticas de BO
 type BOStatisticsResponse struct {
-	RecentBOs []*repository.BOData `json:"recentBOs"`
-	OldestBO  *repository.BOData   `json:"oldestBO"`
+	NewestBO *repository.BOData `json:"newestBO"`
+	OldestBO *repository.BOData `json:"oldestBO"`
 }
 
 // GetBOStatistics manipula a requisição para obter estatísticas dos BOs
@@ -30,10 +30,10 @@ func (h *BOStatisticsHandler) GetBOStatistics(w http.ResponseWriter, r *http.Req
 	// Configurar headers para a resposta
 	w.Header().Set("Content-Type", "application/json")
 	
-	// Buscar os 5 BOs mais recentes
-	recentBOs, err := h.boStatsRepo.BuscarUltimosCincoBOs()
+	// Buscar o BO mais recente
+	newestBO, err := h.boStatsRepo.BuscarBOMaisNovo()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Erro ao buscar BOs recentes: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Erro ao buscar BO mais recente: %v", err), http.StatusInternalServerError)
 		return
 	}
 	
@@ -46,8 +46,8 @@ func (h *BOStatisticsHandler) GetBOStatistics(w http.ResponseWriter, r *http.Req
 	
 	// Montar a resposta
 	response := BOStatisticsResponse{
-		RecentBOs: recentBOs,
-		OldestBO:  oldestBO,
+		NewestBO: newestBO,
+		OldestBO: oldestBO,
 	}
 	
 	// Codificar e enviar a resposta

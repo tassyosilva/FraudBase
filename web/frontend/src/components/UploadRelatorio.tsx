@@ -7,8 +7,6 @@ import {
   CircularProgress,
   Alert,
   Divider,
-  List,
-  ListItem,
   Card,
   Grid,
   alpha,
@@ -133,7 +131,7 @@ const UploadRelatorio = () => {
   const [result, setResult] = useState<{ success: boolean, message: string } | null>(null);
   const [cleaningLoading, setCleaningLoading] = useState<boolean>(false);
   const [cleanResult, setCleanResult] = useState<{ success: boolean, message: string } | null>(null);
-  const [recentBOs, setRecentBOs] = useState<BoData[]>([]);
+  const [newestBO, setNewestBO] = useState<BoData | null>(null);
   const [oldestBO, setOldestBO] = useState<BoData | null>(null);
   const [loadingStats, setLoadingStats] = useState<boolean>(true);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -145,7 +143,6 @@ const UploadRelatorio = () => {
 
   // Função para buscar as estatísticas dos BOs
   const fetchBOStats = async () => {
-    // O código dessa função permanece o mesmo
     setLoadingStats(true);
     setStatsError(null);
 
@@ -162,7 +159,7 @@ const UploadRelatorio = () => {
       }
 
       const data = await response.json();
-      setRecentBOs(data.recentBOs || []);
+      setNewestBO(data.newestBO || null);
       setOldestBO(data.oldestBO || null);
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);
@@ -180,7 +177,6 @@ const UploadRelatorio = () => {
   };
 
   const handleUpload = async () => {
-    // O código dessa função permanece o mesmo
     if (!file) return;
 
     const formData = new FormData();
@@ -224,7 +220,6 @@ const UploadRelatorio = () => {
   };
 
   const handleCleanDuplicates = async () => {
-    // O código dessa função permanece o mesmo
     setCleaningLoading(true);
     setCleanResult(null);
 
@@ -297,43 +292,49 @@ const UploadRelatorio = () => {
                 <NewReleasesIcon sx={{ color: GOLD_COLOR }} />
               </Box>
               <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-                Últimos 5 BOs Registrados
+                BO Mais Novo Registrado
               </Typography>
             </Box>
             <GoldDivider />
 
-            {recentBOs.length > 0 ? (
-              <List sx={{ p: 0 }}>
-                {recentBOs.map((bo, index) => (
-                  <ListItem
-                    key={index}
-                    sx={{
-                      borderLeft: `3px solid ${GOLD_COLOR}`,
-                      mb: 1.5,
-                      p: 1.5,
-                      bgcolor: alpha('#000', 0.2),
-                      borderRadius: '0 8px 8px 0',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        bgcolor: alpha('#000', 0.3),
-                        transform: 'translateX(5px)',
-                        boxShadow: `2px 2px 10px ${alpha('#000', 0.3)}`
-                      }
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ color: 'white' }}>
-                      <strong>{bo.numero_do_bo}</strong>
-                    </Typography>
-                  </ListItem>
-                ))}
-              </List>
+            {newestBO ? (
+              <Box
+                sx={{
+                  p: 3,
+                  bgcolor: alpha('#000', 0.2),
+                  borderRadius: '8px',
+                  border: `1px dashed ${alpha(GOLD_COLOR, 0.3)}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: '120px',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    bgcolor: alpha('#000', 0.3),
+                    boxShadow: `0 4px 15px ${alpha('#000', 0.5)}`,
+                    borderColor: alpha(GOLD_COLOR, 0.5)
+                  }
+                }}
+              >
+                <Typography variant="body1" sx={{ color: '#aaa', mb: 1 }}>
+                  Registro mais recente:
+                </Typography>
+                <Typography variant="h6" sx={{ color: GOLD_COLOR, fontWeight: 'bold' }}>
+                  {newestBO.numero_do_bo}
+                </Typography>
+              </Box>
             ) : (
               <Box sx={{
                 p: 3,
                 bgcolor: alpha('#000', 0.2),
                 borderRadius: 2,
                 textAlign: 'center',
-                border: `1px dashed ${alpha(GOLD_COLOR, 0.3)}`
+                border: `1px dashed ${alpha(GOLD_COLOR, 0.3)}`,
+                minHeight: '120px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}>
                 <Typography variant="body2" sx={{ color: '#aaa', fontStyle: 'italic' }}>
                   Nenhum BO encontrado no sistema.
