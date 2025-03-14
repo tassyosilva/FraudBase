@@ -79,19 +79,11 @@ func main() {
     // Rota de login (não protegida)
     r.HandleFunc("/api/login", authHandler.Login).Methods("POST", "OPTIONS")
     
-    // Rotas públicas (quando houver)
-    r.HandleFunc("/api/users", userHandler.CreateUser).Methods("POST", "OPTIONS")
-    
     // Rotas protegidas por JWT
     apiRouter := r.PathPrefix("/api").Subrouter()
     apiRouter.Use(middleware.JWTAuthMiddleware)
     
-    // Rotas protegidas ao apiRouter
-    apiRouter.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET", "OPTIONS")
-    apiRouter.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE", "OPTIONS")
-    apiRouter.HandleFunc("/users/{id}", userHandler.GetUserByIDHandler).Methods("GET", "OPTIONS")
-    apiRouter.HandleFunc("/users", userHandler.UpdateUser).Methods("PUT", "OPTIONS")
-    apiRouter.HandleFunc("/users/password", userHandler.UpdateUserPassword).Methods("PUT", "OPTIONS")
+    // Rotas que qualquer usuário autenticado pode acessar
     apiRouter.HandleFunc("/municipios", municipioHandler.GetAllMunicipios).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/ufs", municipioHandler.GetAllUFs).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/paises", paisHandler.GetAllPaises).Methods("GET", "OPTIONS")
@@ -111,10 +103,27 @@ func main() {
     apiRouter.HandleFunc("/clean-duplicates", limpezaHandler.LimparDuplicatasHandler).Methods("POST", "OPTIONS")
     apiRouter.HandleFunc("/bo-statistics", boStatsHandler.GetBOStatistics).Methods("GET", "OPTIONS")
     apiRouter.HandleFunc("/reincidencia/celular", reincidenciaCelularHandler.GetReincidenciaPorCelular).Methods("GET", "OPTIONS")
-
-    // adminRouter := apiRouter.PathPrefix("/admin").Subrouter()
-    // adminRouter.Use(middleware.AdminOnly)
-    // ... rotas de admin
+    
+    // Rotas para o perfil do usuário
+    // Acesso ao próprio perfil de usuário
+    apiRouter.HandleFunc("/users/{id}", userHandler.GetUserByIDHandler).Methods("GET", "OPTIONS")
+    // Alteração de senha
+    apiRouter.HandleFunc("/users/password", userHandler.UpdateUserPassword).Methods("PUT", "OPTIONS")
+    
+    // Função auxiliar para aplicar middleware AdminOnly a cada rota individual
+    adminOnly := func(handler http.HandlerFunc) http.Handler {
+        return middleware.AdminOnly(http.HandlerFunc(handler))
+    }
+    
+    // Rotas de admin - cada uma protegida individualmente com middleware AdminOnly
+    apiRouter.Handle("/users", adminOnly(userHandler.GetAllUsers)).Methods("GET", "OPTIONS")
+    apiRouter.Handle("/users", adminOnly(userHandler.UpdateUser)).Methods("PUT", "OPTIONS")
+    apiRouter.Handle("/users", adminOnly(userHandler.CreateUser)).Methods("POST", "OPTIONS")
+    apiRouter.Handle("/users/{id}", adminOnly(userHandler.DeleteUser)).Methods("DELETE", "OPTIONS")
+    
+    // Proteção de rotas de settings adicionadas futuramente
+    apiRouter.Handle("/settings/users", adminOnly(userHandler.GetAllUsers)).Methods("GET", "OPTIONS")
+    apiRouter.Handle("/settings/register", adminOnly(userHandler.CreateUser)).Methods("POST", "OPTIONS")
     
     log.Println("Servidor rodando na porta 8080")
     log.Fatal(http.ListenAndServe(":8080", r))
