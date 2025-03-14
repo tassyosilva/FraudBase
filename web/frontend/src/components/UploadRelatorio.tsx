@@ -530,6 +530,30 @@ const UploadRelatorio = () => {
 
           <GoldDivider />
 
+          <Box sx={{ mt: 3, mb: 2 }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              bgcolor: alpha('#2c2c2c', 0.5),
+              borderRadius: 2,
+              p: 2
+            }}>
+              <InfoIcon sx={{ color: GOLD_COLOR, mr: 1.5, mt: 0.3 }} />
+              <Box>
+                <Typography variant="subtitle1" gutterBottom sx={{ color: 'white', fontWeight: 'bold' }}>
+                  Importante:
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#ccc' }}>
+                  • O arquivo deve conter no mínimo as tabelas: "Dados do Registro", "Dados do Fato", "Envolvidos" e "Relato Histórico"<br />
+                  • Certifique-se que o arquivo segue o formato padrão dos relatórios de B.O. do SINESP<br />
+                  • Antes de importar novos arquivos, consulte abaixo o BO mais recente cadastrado, verifique a data do referido BO no sistema e utilize relatórios a partir da referida data.
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          <GoldDivider />
+
           {/* Nova seção para estatísticas de BO */}
           <Box sx={{ mt: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -566,30 +590,6 @@ const UploadRelatorio = () => {
               >
                 Atualizar Estatísticas
               </Button>
-            </Box>
-          </Box>
-
-          <GoldDivider />
-
-          <Box sx={{ mt: 3, mb: 2 }}>
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              bgcolor: alpha('#2c2c2c', 0.5),
-              borderRadius: 2,
-              p: 2
-            }}>
-              <InfoIcon sx={{ color: GOLD_COLOR, mr: 1.5, mt: 0.3 }} />
-              <Box>
-                <Typography variant="subtitle1" gutterBottom sx={{ color: 'white', fontWeight: 'bold' }}>
-                  Importante:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#ccc' }}>
-                  • O arquivo deve conter no mínimo as tabelas: "Dados do Registro", "Dados do Fato", "Envolvidos" e "Relato Histórico"<br />
-                  • Certifique-se que o arquivo segue o formato padrão dos relatórios de B.O. do SINESP<br />
-                  • O sistema processará apenas os campos relevantes de cada tabela.
-                </Typography>
-              </Box>
             </Box>
           </Box>
 
