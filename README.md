@@ -25,6 +25,7 @@ TEMPLATE template0;
 CREATE DATABASE fraudbase WITH ENCODING 'UTF8' LC_COLLATE='pt_BR.UTF-8' LC_CTYPE='pt_BR.UTF-8' TEMPLATE template0;
 ```
 - Faça o download do arquivo de backup disponível [aqui](bd_fraudbase) e restaure no banco de dados que foi criado.
+- A tabela de delegacias deve ser alterada manualmente para refletir a realidade estrutural do Estado.
 
 ### Modo de Produção
 
