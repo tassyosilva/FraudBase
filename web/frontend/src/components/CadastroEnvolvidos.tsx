@@ -325,16 +325,49 @@ const CadastroEnvolvidos = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validar CPF se existir
-    if (formData.cpf) {
+    // Validar campos obrigatórios
+    const newErrors: { [key: string]: string } = {};
+    let isValid = true;
+
+    // Validar tipo de envolvido
+    if (!formData.tipo_envolvido) {
+      newErrors.tipo_envolvido = 'Tipo de envolvido é obrigatório';
+      isValid = false;
+    }
+
+    // Validar nome completo
+    if (!formData.nomecompleto.trim()) {
+      newErrors.nomecompleto = 'Nome completo é obrigatório';
+      isValid = false;
+    }
+
+    // Validar CPF
+    if (!formData.cpf.trim()) {
+      newErrors.cpf = 'CPF é obrigatório';
+      isValid = false;
+    } else {
       const cpfError = validateCPF(formData.cpf);
       if (cpfError) {
-        setErrors({
-          ...errors,
-          cpf: cpfError
-        });
-        return;
+        newErrors.cpf = cpfError;
+        isValid = false;
       }
+    }
+
+    // Validar telefone
+    if (!formData.telefone_envolvido.trim()) {
+      newErrors.telefone_envolvido = 'Telefone é obrigatório';
+      isValid = false;
+    }
+
+    // Validar número do BO
+    if (!formData.numero_do_bo.trim()) {
+      newErrors.numero_do_bo = 'Número do BO é obrigatório';
+      isValid = false;
+    }
+
+    if (!isValid) {
+      setErrors(newErrors);
+      return;
     }
 
     try {
@@ -445,12 +478,15 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
+                  required
                   select
-                  label="Tipo de Envolvido"
+                  label="Tipo de Envolvido *"
                   name="tipo_envolvido"
                   value={formData.tipo_envolvido}
                   onChange={handleChange}
                   variant="outlined"
+                  error={!!errors.tipo_envolvido}
+                  helperText={errors.tipo_envolvido}
                 >
                   {tiposEnvolvidos.map((option) => (
                     <MenuItem key={option.value} value={option.value}>
@@ -462,17 +498,21 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Nome Completo"
+                  required
+                  label="Nome Completo *"
                   name="nomecompleto"
                   value={formData.nomecompleto}
                   onChange={handleChange}
                   variant="outlined"
+                  error={!!errors.nomecompleto}
+                  helperText={errors.nomecompleto}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="CPF"
+                  required
+                  label="CPF *"
                   name="cpf"
                   value={formData.cpf}
                   onChange={handleChange}
@@ -604,11 +644,14 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Telefone"
+                  required
+                  label="Telefone *"
                   name="telefone_envolvido"
                   value={formData.telefone_envolvido}
                   onChange={handleChange}
                   variant="outlined"
+                  error={!!errors.telefone_envolvido}
+                  helperText={errors.telefone_envolvido}
                 />
               </Grid>
             </Grid>
@@ -770,11 +813,14 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Número do BO"
+                  required
+                  label="Número do BO *"
                   name="numero_do_bo"
                   value={formData.numero_do_bo}
                   onChange={handleChange}
                   variant="outlined"
+                  error={!!errors.numero_do_bo}
+                  helperText={errors.numero_do_bo}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
