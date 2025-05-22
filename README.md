@@ -11,21 +11,7 @@
 
 - Instale o PostgreSQL em sua máquina ou utilize um servidor existente.
 
-- Crie um novo banco de dados no usuário de sua preferência, com codificação UTF8.
-- Se preferir, use a ferramenta de query no pgAdmin:
-```bash
-CREATE DATABASE fraudbase 
-WITH ENCODING 'UTF8' 
-LC_COLLATE='pt_BR.UTF-8' 
-LC_CTYPE='pt_BR.UTF-8'
-TEMPLATE template0;
-```
-- Ou, via terminal psql:
-```bash
-CREATE DATABASE fraudbase WITH ENCODING 'UTF8' LC_COLLATE='pt_BR.UTF-8' LC_CTYPE='pt_BR.UTF-8' TEMPLATE template0;
-```
-- Faça o download do arquivo de backup disponível [aqui](bd_fraudbase) e restaure no banco de dados que foi criado.
-- A tabela de delegacias deve ser alterada manualmente para refletir a realidade estrutural do Estado.
+- Crie um novo banco de dados no usuário de sua preferência, com codificação UTF8 e o nome de sua preferência.
 
 ### Modo de Produção
 
