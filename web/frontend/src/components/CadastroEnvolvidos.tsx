@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Paper,
   Typography,
@@ -51,26 +51,6 @@ const CadastroEnvolvidos = () => {
   const [expanded, setExpanded] = useState<string | false>('panel1');
   // Estado para mensagens de sucesso ou erro
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
-  // Estado para armazenar a lista de municípios
-  const [municipios, setMunicipios] = useState<{ municipio: string }[]>([]);
-  // Estado para controlar o carregamento dos municípios
-  const [municipiosLoading, setMunicipiosLoading] = useState(false);
-  // Estado para armazenar a lista de UFs
-  const [ufs, setUfs] = useState<{ uf: string }[]>([]);
-  // Estado para controlar o carregamento das UFs
-  const [ufsLoading, setUfsLoading] = useState(false);
-  // Estado para armazenar a lista de países
-  const [paises, setPaises] = useState<{ nome_pais: string }[]>([]);
-  // Estado para controlar o carregamento dos países
-  const [paisesLoading, setPaisesLoading] = useState(false);
-  // Estado para armazenar a lista de delegacias
-  const [delegacias, setDelegacias] = useState<{ nome: string }[]>([]);
-  // Estado para controlar o carregamento das delegacias
-  const [delegaciasLoading, setDelegaciasLoading] = useState(false);
-  // Estado para armazenar a lista de bancos
-  const [bancos, setBancos] = useState<{ nome_completo: string }[]>([]);
-  // Estado para controlar o carregamento dos bancos
-  const [bancosLoading, setBancosLoading] = useState(false);
 
   // Estado para os dados do formulário
   const [formData, setFormData] = useState({
@@ -118,155 +98,6 @@ const CadastroEnvolvidos = () => {
     numero_laudo_pericial: ''
   });
 
-  // Função para buscar municípios da API
-  const fetchMunicipios = async () => {
-    setMunicipiosLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/municipios`, {
-        headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao carregar municípios');
-      }
-
-      const data = await response.json();
-      setMunicipios(data);
-    } catch (error) {
-      console.error('Erro ao buscar municípios:', error);
-      setAlert({
-        open: true,
-        message: 'Erro ao carregar lista de municípios.',
-        severity: 'error'
-      });
-    } finally {
-      setMunicipiosLoading(false);
-    }
-  };
-
-  // Função para buscar UFs
-  const fetchUFs = async () => {
-    setUfsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/ufs`, {
-        headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao carregar UFs');
-      }
-
-      const data = await response.json();
-      setUfs(data);
-    } catch (error) {
-      console.error('Erro ao buscar UFs:', error);
-      setAlert({
-        open: true,
-        message: 'Erro ao carregar lista de UFs.',
-        severity: 'error'
-      });
-    } finally {
-      setUfsLoading(false);
-    }
-  };
-
-  // Função para buscar países
-  const fetchPaises = async () => {
-    setPaisesLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/paises`, {
-        headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao carregar países');
-      }
-
-      const data = await response.json();
-      setPaises(data);
-    } catch (error) {
-      console.error('Erro ao buscar países:', error);
-      setAlert({
-        open: true,
-        message: 'Erro ao carregar lista de países.',
-        severity: 'error'
-      });
-    } finally {
-      setPaisesLoading(false);
-    }
-  };
-
-  // Função para buscar delegacias
-  const fetchDelegacias = async () => {
-    setDelegaciasLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/delegacias`, {
-        headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao carregar delegacias');
-      }
-
-      const data = await response.json();
-      setDelegacias(data);
-    } catch (error) {
-      console.error('Erro ao buscar delegacias:', error);
-      setAlert({
-        open: true,
-        message: 'Erro ao carregar lista de delegacias.',
-        severity: 'error'
-      });
-    } finally {
-      setDelegaciasLoading(false);
-    }
-  };
-
-  // Função para buscar bancos
-  const fetchBancos = async () => {
-    setBancosLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/bancos`, {
-        headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao carregar bancos');
-      }
-
-      const data = await response.json();
-      setBancos(data);
-    } catch (error) {
-      console.error('Erro ao buscar bancos:', error);
-      setAlert({
-        open: true,
-        message: 'Erro ao carregar lista de bancos.',
-        severity: 'error'
-      });
-    } finally {
-      setBancosLoading(false);
-    }
-  };
-
-  // Carregar municípios, UFs, países, delegacias e bancos quando o componente montar
-  useEffect(() => {
-    fetchMunicipios();
-    fetchUFs();
-    fetchPaises();
-    fetchDelegacias();
-    fetchBancos();
-  }, []);
-
   // Função para validar o CPF (apenas verificação de 11 dígitos)
   const validateCPF = (cpf: string) => {
     if (cpf) {
@@ -285,6 +116,7 @@ const CadastroEnvolvidos = () => {
   const handleAccordionChange = (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
+
   // Função para lidar com mudanças nos campos do formulário
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -321,6 +153,7 @@ const CadastroEnvolvidos = () => {
       });
     }
   };
+
   // Função para lidar com o envio do formulário
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -546,83 +379,32 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  select
                   label="Nacionalidade"
                   name="nacionalidade"
                   value={formData.nacionalidade}
                   onChange={handleChange}
                   variant="outlined"
-                  disabled={paisesLoading}
-                  SelectProps={{
-                    MenuProps: {
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                        },
-                      },
-                    },
-                  }}
-                >
-                  {paises.map((option) => (
-                    <MenuItem key={option.nome_pais} value={option.nome_pais}>
-                      {option.nome_pais}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  select
                   label="Naturalidade"
                   name="naturalidade"
                   value={formData.naturalidade}
                   onChange={handleChange}
                   variant="outlined"
-                  disabled={municipiosLoading}
-                  SelectProps={{
-                    MenuProps: {
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                        },
-                      },
-                    },
-                  }}
-                >
-                  {municipios.map((option) => (
-                    <MenuItem key={option.municipio} value={option.municipio}>
-                      {option.municipio}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  select
                   label="UF"
                   name="uf_envolvido"
                   value={formData.uf_envolvido}
                   onChange={handleChange}
                   variant="outlined"
-                  disabled={ufsLoading}
-                  SelectProps={{
-                    MenuProps: {
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                        },
-                      },
-                    },
-                  }}
-                >
-                  {ufs.map((option) => (
-                    <MenuItem key={option.uf} value={option.uf}>
-                      {option.uf}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -744,56 +526,22 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  select
                   label="Município"
                   name="municipio_fato"
                   value={formData.municipio_fato}
                   onChange={handleChange}
                   variant="outlined"
-                  disabled={municipiosLoading}
-                  SelectProps={{
-                    MenuProps: {
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                        },
-                      },
-                    },
-                  }}
-                >
-                  {municipios.map((option) => (
-                    <MenuItem key={option.municipio} value={option.municipio}>
-                      {option.municipio}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  select
                   label="País"
                   name="pais_fato"
                   value={formData.pais_fato}
                   onChange={handleChange}
                   variant="outlined"
-                  disabled={paisesLoading}
-                  SelectProps={{
-                    MenuProps: {
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                        },
-                      },
-                    },
-                  }}
-                >
-                  {paises.map((option) => (
-                    <MenuItem key={option.nome_pais} value={option.nome_pais}>
-                      {option.nome_pais}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                />
               </Grid>
             </Grid>
           </AccordionDetails>
@@ -826,29 +574,12 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  select
                   label="Delegacia Responsável"
                   name="delegacia_responsavel"
                   value={formData.delegacia_responsavel}
                   onChange={handleChange}
                   variant="outlined"
-                  disabled={delegaciasLoading}
-                  SelectProps={{
-                    MenuProps: {
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                        },
-                      },
-                    },
-                  }}
-                >
-                  {delegacias.map((option) => (
-                    <MenuItem key={option.nome} value={option.nome}>
-                      {option.nome}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -914,29 +645,12 @@ const CadastroEnvolvidos = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  select
                   label="Instituição Bancária"
                   name="instituicao_bancaria"
                   value={formData.instituicao_bancaria}
                   onChange={handleChange}
                   variant="outlined"
-                  disabled={bancosLoading}
-                  SelectProps={{
-                    MenuProps: {
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                        },
-                      },
-                    },
-                  }}
-                >
-                  {bancos.map((option) => (
-                    <MenuItem key={option.nome_completo} value={option.nome_completo}>
-                      {option.nome_completo}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -1148,6 +862,7 @@ const CadastroEnvolvidos = () => {
 
 export default CadastroEnvolvidos;
 
+// Funções auxiliares para formatação
 const formatCPF = (cpf: string) => {
   const numbers = cpf.replace(/\D/g, '');
   const cpfLimited = numbers.slice(0, 11);
@@ -1181,6 +896,6 @@ const formatPhone = (phone: string) => {
     const rest = phoneLimited.slice(2);
     return `(${ddd})${rest}`;
   }
-  
+
   return phoneLimited;
 };

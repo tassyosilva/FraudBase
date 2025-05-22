@@ -17,7 +17,11 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 
 func (r *UserRepository) GetUserByLogin(login string) (*models.User, error) {
     user := &models.User{}
-    err := r.db.QueryRow("SELECT * FROM usuarios WHERE login = $1", login).Scan(
+    
+    // Query corrigida para incluir todos os campos, incluindo created_at e updated_at
+    query := "SELECT id, login, nome, cpf, matricula, telefone, unidade_policial, email, senha, is_admin FROM usuarios WHERE login = $1"
+    
+    err := r.db.QueryRow(query, login).Scan(
         &user.ID,
         &user.Login,
         &user.Nome,
@@ -28,6 +32,7 @@ func (r *UserRepository) GetUserByLogin(login string) (*models.User, error) {
         &user.Email,
         &user.Senha,
         &user.IsAdmin,
+        // Removemos os campos created_at e updated_at do Scan já que não estão no model User
     )
     if err != nil {
         return nil, err
@@ -131,7 +136,8 @@ func (ur *UserRepository) UpdateUser(user models.User) error {
                 telefone = $5, 
                 unidade_policial = $6, 
                 email = $7, 
-                is_admin = $8
+                is_admin = $8,
+                updated_at = CURRENT_TIMESTAMP
               WHERE id = $9`
     
     _, err := ur.db.Exec(
@@ -156,7 +162,7 @@ func (ur *UserRepository) UpdateUser(user models.User) error {
 
 // UpdateUserPassword atualiza apenas a senha do usuário
 func (ur *UserRepository) UpdateUserPassword(userID int, hashedPassword string) error {
-    query := `UPDATE usuarios SET senha = $1 WHERE id = $2`
+    query := `UPDATE usuarios SET senha = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`
     
     _, err := ur.db.Exec(query, hashedPassword, userID)
     if err != nil {

@@ -13,7 +13,7 @@ func ConnectDB() (*sql.DB, error) {
     
     host := os.Getenv("DB_HOST")
     if host == "" {
-        host = "192.168.1.106" // Valor padrão para desenvolvimento
+        host = "192.168.3.204" // Valor padrão para desenvolvimento
     }
     
     user := os.Getenv("DB_USER")
@@ -23,12 +23,12 @@ func ConnectDB() (*sql.DB, error) {
     
     password := os.Getenv("DB_PASSWORD")
     if password == "" {
-        password = "123456" // Valor padrão para desenvolvimento
+        password = "adm2000!@" // Valor padrão para desenvolvimento
     }
     
     dbname := os.Getenv("DB_NAME")
     if dbname == "" {
-        dbname = "fraudbase" // Valor padrão para desenvolvimento
+        dbname = "db_fraudbase" // Valor padrão para desenvolvimento
     }
     
     sslmode := os.Getenv("DB_SSLMODE")
@@ -52,5 +52,25 @@ func ConnectDB() (*sql.DB, error) {
     }
     
     log.Println("Conexão estabelecida com sucesso!")
+    
+    // Executar migrações automaticamente
+    log.Println("Executando migrações do banco de dados...")
+    if err := RunMigrations(db); err != nil {
+        log.Printf("Erro ao executar migrações: %v", err)
+        return nil, err
+    }
+    
+    // Atualizar estrutura da tabela se necessário (para corrigir tamanhos de campos)
+    if err := UpdateTableStructure(db); err != nil {
+        log.Printf("Aviso: Erro ao atualizar estrutura da tabela: %v", err)
+        // Não retornar erro, continuar execução
+    }
+    
+    // Adicionar índices para performance
+    if err := AddIndexes(db); err != nil {
+        log.Printf("Aviso: Erro ao criar índices: %v", err)
+        // Não retornar erro, continuar execução
+    }
+    
     return db, nil
 }
