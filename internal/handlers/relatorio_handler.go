@@ -70,8 +70,8 @@ func (h *RelatorioHandler) UploadRelatorio(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Inserir dados no banco de dados
-	registrosInseridos, err := h.repo.InserirDadosRelatorio(dadosProcessados)
+	// Inserir dados no banco de dados (LINHA ALTERADA)
+	registrosInseridos, duplicatasEvitadas, err := h.repo.InserirDadosRelatorio(dadosProcessados)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Erro ao inserir dados no banco: "+err.Error())
 		return
@@ -79,16 +79,18 @@ func (h *RelatorioHandler) UploadRelatorio(w http.ResponseWriter, r *http.Reques
 
 	// Atualizar views materializadas em background
 	go func() {
-		time.Sleep(2 * time.Second) // Delay para garantir que inserção terminou
-		database.RefreshMaterializedViews(h.repo.DB) // MUDANÇA: h.repo.DB
+		time.Sleep(2 * time.Second)
+		database.RefreshMaterializedViews(h.repo.DB)
 		log.Println("Views materializadas atualizadas após upload")
 	}()
 
-	// Responder com sucesso
+	// Responder com sucesso (RESPOSTA ALTERADA)
 	response := map[string]interface{}{
-		"success":            true,
-		"message":            "Arquivo processado com sucesso",
-		"registrosInseridos": registrosInseridos,
+		"success":             true,
+		"message":             "Arquivo processado com sucesso",
+		"registrosInseridos":  registrosInseridos,
+		"duplicatasEvitadas":  duplicatasEvitadas, // NOVO CAMPO
+		"totalProcessados":    len(dadosProcessados), // NOVO CAMPO
 	}
 
 	w.Header().Set("Content-Type", "application/json")

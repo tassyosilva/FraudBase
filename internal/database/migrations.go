@@ -283,6 +283,12 @@ func AddIndexes(db *sql.DB) error {
 		// Índices de usuários
 		"CREATE INDEX IF NOT EXISTS idx_usuarios_login ON usuarios(login);",
 		"CREATE INDEX IF NOT EXISTS idx_usuarios_email ON usuarios(email);",
+
+		// ÍNDICE ESPECÍFICO PARA VERIFICAÇÃO DE DUPLICATAS
+		"CREATE INDEX IF NOT EXISTS idx_verificacao_duplicatas ON tabela_estelionato(numero_do_bo, tipo_envolvido, nomecompleto, cpf, telefone_envolvido, data_fato);",
+		
+		// Índice adicional para performance na verificação completa
+		"CREATE INDEX IF NOT EXISTS idx_duplicatas_hash ON tabela_estelionato(numero_do_bo, delegacia_responsavel, situacao) WHERE numero_do_bo IS NOT NULL;",
 	}
 
 	for _, indexQuery := range indexes {

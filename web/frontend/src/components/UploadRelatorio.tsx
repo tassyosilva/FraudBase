@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import {
   Paper,
   Box,
@@ -11,11 +10,11 @@ import {
   Grid,
   alpha,
   styled,
-  Tooltip,
   Container
-} from '@mui/material';
+} from '@mui/material'; import { useState, useEffect } from 'react';
+
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import CleaningServicesIcon from '@mui/icons-material/CleaningServices';
+
 import HistoryIcon from '@mui/icons-material/History';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import FlagIcon from '@mui/icons-material/Flag';
@@ -104,33 +103,26 @@ const PrimaryButton = styled(Button)({
   }
 });
 
-// Botão de limpeza estilizado
-const DangerButton = styled(Button)({
-  backgroundColor: '#d32f2f',
-  color: 'white',
-  padding: '10px 20px',
-  borderRadius: '8px',
-  fontWeight: 'bold',
-  transition: 'all 0.3s ease',
-  boxShadow: '0 4px 12px rgba(211, 47, 47, 0.3)',
-  '&:hover': {
-    backgroundColor: '#b71c1c',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 8px 20px rgba(211, 47, 47, 0.4)'
-  }
-});
+
 
 // Tipagem para os dados de BO
 interface BoData {
   numero_do_bo: string;
 }
 
+// Interface de resposta do upload atualizada
+interface UploadResponse {
+  success: boolean;
+  message: string;
+  registrosInseridos?: number;
+  duplicatasEvitadas?: number;  // NOVO
+  totalProcessados?: number;    // NOVO
+}
+
 const UploadRelatorio = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<{ success: boolean, message: string } | null>(null);
-  const [cleaningLoading, setCleaningLoading] = useState<boolean>(false);
-  const [cleanResult, setCleanResult] = useState<{ success: boolean, message: string } | null>(null);
   const [newestBO, setNewestBO] = useState<BoData | null>(null);
   const [oldestBO, setOldestBO] = useState<BoData | null>(null);
   const [loadingStats, setLoadingStats] = useState<boolean>(true);
@@ -193,19 +185,31 @@ const UploadRelatorio = () => {
         body: formData,
       });
 
-      const data = await response.json();
+      const data: UploadResponse = await response.json(); // TIPAGEM ADICIONADA
 
       if (response.ok) {
+        // MENSAGEM MELHORADA COM INFORMAÇÕES DE DUPLICATAS
+        let message = `Upload realizado com sucesso! ${data.registrosInseridos || 0} registros foram inseridos.`;
+
+        if (data.duplicatasEvitadas && data.duplicatasEvitadas > 0) {
+          message += ` ${data.duplicatasEvitadas} duplicatas foram automaticamente evitadas.`;
+        }
+
+        if (data.totalProcessados) {
+          message += ` (${data.totalProcessados} registros processados no total)`;
+        }
+
         setResult({
           success: true,
-          message: `Upload realizado com sucesso! ${data.registrosInseridos || 0} registros foram inseridos.`
+          message: message
         });
+
         // Atualizar estatísticas após upload bem-sucedido
         fetchBOStats();
       } else {
         setResult({
           success: false,
-          message: data.error || 'Erro ao processar o arquivo.'
+          message: data.message || 'Erro ao processar o arquivo.'
         });
       }
     } catch (error) {
@@ -219,43 +223,7 @@ const UploadRelatorio = () => {
     }
   };
 
-  const handleCleanDuplicates = async () => {
-    setCleaningLoading(true);
-    setCleanResult(null);
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/clean-duplicates`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-        },
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setCleanResult({
-          success: true,
-          message: `Limpeza concluída! ${data.rowsRemoved} registros duplicados foram removidos.`
-        });
-        // Atualizar estatísticas após limpeza bem-sucedida
-        fetchBOStats();
-      } else {
-        setCleanResult({
-          success: false,
-          message: data.error || 'Erro ao limpar registros duplicados.'
-        });
-      }
-    } catch (error) {
-      console.error('Erro durante a limpeza:', error);
-      setCleanResult({
-        success: false,
-        message: 'Erro de conexão com o servidor.'
-      });
-    } finally {
-      setCleaningLoading(false);
-    }
-  };
 
   // Renderizar o componente de estatísticas de BO
   const renderBOStats = () => {
@@ -590,55 +558,6 @@ const UploadRelatorio = () => {
               >
                 Atualizar Estatísticas
               </Button>
-            </Box>
-          </Box>
-
-          {/* Seção para o botão de limpeza */}
-          <GoldDivider />
-
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ color: 'white', mb: 2 }}>
-              Manutenção da Base de Dados
-            </Typography>
-
-            <Box sx={{
-              bgcolor: alpha('#2c2c2c', 0.5),
-              borderRadius: 2,
-              p: 3,
-              border: `1px solid ${alpha('#d32f2f', 0.3)}`
-            }}>
-              <Typography variant="body2" sx={{ mb: 2, color: '#ccc' }}>
-                Após a inserção de novos relatórios, use esta opção para remover registros duplicados do banco de dados, mantendo apenas uma ocorrência de cada registro.
-              </Typography>
-
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <Tooltip title="Esta operação não pode ser desfeita" placement="top">
-                  <span>
-                    <DangerButton
-                      variant="contained"
-                      onClick={handleCleanDuplicates}
-                      disabled={cleaningLoading}
-                      startIcon={cleaningLoading ? <CircularProgress size={20} color="inherit" /> : <CleaningServicesIcon />}
-                    >
-                      {cleaningLoading ? 'Limpando...' : 'Limpar Dados Duplicados'}
-                    </DangerButton>
-                  </span>
-                </Tooltip>
-              </Box>
-
-              <Typography variant="caption" display="block" sx={{ mt: 2, color: '#ff9e9e', textAlign: 'center' }}>
-                Atenção: As operações realizadas nesta seção não podem ser desfeitas.
-              </Typography>
-
-              {cleanResult && (
-                <Alert
-                  severity={cleanResult.success ? "success" : "error"}
-                  variant="filled"
-                  sx={{ mt: 2 }}
-                >
-                  {cleanResult.message}
-                </Alert>
-              )}
             </Box>
           </Box>
         </GradientPaper>
