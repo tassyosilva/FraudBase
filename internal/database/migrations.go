@@ -15,6 +15,11 @@ func RunMigrations(db *sql.DB) error {
 		return err
 	}
 
+	// Atualizar estrutura da tabela de usuários (adicionar novos campos)
+	if err := UpdateUsersTableStructure(db); err != nil {
+		return err
+	}
+
 	// Criar tabela principal de estelionato
 	if err := createEstelianatoTable(db); err != nil {
 		return err
@@ -44,6 +49,8 @@ func createUsersTable(db *sql.DB) error {
 		cpf VARCHAR(14) NOT NULL,
 		matricula VARCHAR(50),
 		telefone VARCHAR(20),
+		cidade VARCHAR(100),
+		estado VARCHAR(50),
 		unidade_policial VARCHAR(200),
 		email VARCHAR(200) UNIQUE NOT NULL,
 		senha TEXT NOT NULL,
@@ -59,6 +66,26 @@ func createUsersTable(db *sql.DB) error {
 	}
 	
 	log.Println("Tabela 'usuarios' criada/verificada com sucesso")
+	return nil
+}
+
+// UpdateUsersTableStructure adiciona os novos campos à tabela existente
+func UpdateUsersTableStructure(db *sql.DB) error {
+	log.Println("Atualizando estrutura da tabela usuarios...")
+	
+	alterations := []string{
+		"ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cidade VARCHAR(100);",
+		"ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS estado VARCHAR(50);",
+	}
+	
+	for _, alteration := range alterations {
+		_, err := db.Exec(alteration)
+		if err != nil {
+			log.Printf("Aviso: Alteração ignorada (possivelmente já aplicada): %v", err)
+		}
+	}
+	
+	log.Println("Estrutura da tabela usuarios atualizada")
 	return nil
 }
 

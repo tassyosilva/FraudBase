@@ -7,6 +7,8 @@ type User struct {
     CPF            string `json:"cpf"`
     Matricula      string `json:"matricula"`
     Telefone       string `json:"telefone"`
+    Cidade         string `json:"cidade"`
+    Estado         string `json:"estado"`
     UnidadePolicial string `json:"unidade_policial"`
     Email          string `json:"email"`
     Senha          string `json:"senha,omitempty"`

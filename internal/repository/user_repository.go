@@ -18,8 +18,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 func (r *UserRepository) GetUserByLogin(login string) (*models.User, error) {
     user := &models.User{}
     
-    // Query corrigida para incluir todos os campos, incluindo created_at e updated_at
-    query := "SELECT id, login, nome, cpf, matricula, telefone, unidade_policial, email, senha, is_admin FROM usuarios WHERE login = $1"
+    query := "SELECT id, login, nome, cpf, matricula, telefone, COALESCE(cidade, '') as cidade, COALESCE(estado, '') as estado, unidade_policial, email, senha, is_admin FROM usuarios WHERE login = $1"
     
     err := r.db.QueryRow(query, login).Scan(
         &user.ID,
@@ -28,11 +27,12 @@ func (r *UserRepository) GetUserByLogin(login string) (*models.User, error) {
         &user.CPF,
         &user.Matricula,
         &user.Telefone,
+        &user.Cidade,
+        &user.Estado,
         &user.UnidadePolicial,
         &user.Email,
         &user.Senha,
         &user.IsAdmin,
-        // Removemos os campos created_at e updated_at do Scan já que não estão no model User
     )
     if err != nil {
         return nil, err
@@ -67,8 +67,8 @@ func (r *UserRepository) CreateUser(user *models.User) error {
     }
 
     query := `
-        INSERT INTO usuarios (login, nome, cpf, matricula, telefone, unidade_policial, email, senha, is_admin)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO usuarios (login, nome, cpf, matricula, telefone, cidade, estado, unidade_policial, email, senha, is_admin)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     `
 
     _, err = r.db.Exec(query,
@@ -77,6 +77,8 @@ func (r *UserRepository) CreateUser(user *models.User) error {
         user.CPF,
         user.Matricula,
         user.Telefone,
+        user.Cidade,
+        user.Estado,
         user.UnidadePolicial,
         user.Email,
         string(hashedPassword),
@@ -90,7 +92,7 @@ func (r *UserRepository) CreateUser(user *models.User) error {
 func (ur *UserRepository) GetAllUsers() ([]models.User, error) {
     var users []models.User
     
-    query := `SELECT id, login, nome, cpf, matricula, telefone, unidade_policial, email, is_admin 
+    query := `SELECT id, login, nome, cpf, matricula, telefone, COALESCE(cidade, '') as cidade, COALESCE(estado, '') as estado, unidade_policial, email, is_admin 
               FROM usuarios ORDER BY nome`
     
     rows, err := ur.db.Query(query)
@@ -108,6 +110,8 @@ func (ur *UserRepository) GetAllUsers() ([]models.User, error) {
             &user.CPF,
             &user.Matricula,
             &user.Telefone,
+            &user.Cidade,
+            &user.Estado,
             &user.UnidadePolicial,
             &user.Email,
             &user.IsAdmin,
@@ -133,12 +137,14 @@ func (ur *UserRepository) UpdateUser(user models.User) error {
                 nome = $2, 
                 cpf = $3, 
                 matricula = $4, 
-                telefone = $5, 
-                unidade_policial = $6, 
-                email = $7, 
-                is_admin = $8,
+                telefone = $5,
+                cidade = $6,
+                estado = $7, 
+                unidade_policial = $8, 
+                email = $9, 
+                is_admin = $10,
                 updated_at = CURRENT_TIMESTAMP
-              WHERE id = $9`
+              WHERE id = $11`
     
     _, err := ur.db.Exec(
         query,
@@ -147,6 +153,8 @@ func (ur *UserRepository) UpdateUser(user models.User) error {
         user.CPF,
         user.Matricula,
         user.Telefone,
+        user.Cidade,
+        user.Estado,
         user.UnidadePolicial,
         user.Email,
         user.IsAdmin,
@@ -188,7 +196,7 @@ func (ur *UserRepository) DeleteUser(userID int) error {
 func (ur *UserRepository) GetUserByID(userID int) (models.User, error) {
     var user models.User
     
-    query := `SELECT id, login, nome, cpf, matricula, telefone, unidade_policial, email, is_admin 
+    query := `SELECT id, login, nome, cpf, matricula, telefone, COALESCE(cidade, '') as cidade, COALESCE(estado, '') as estado, unidade_policial, email, is_admin 
               FROM usuarios WHERE id = $1`
     
     err := ur.db.QueryRow(query, userID).Scan(
@@ -198,6 +206,8 @@ func (ur *UserRepository) GetUserByID(userID int) (models.User, error) {
         &user.CPF,
         &user.Matricula,
         &user.Telefone,
+        &user.Cidade,
+        &user.Estado,
         &user.UnidadePolicial,
         &user.Email,
         &user.IsAdmin,

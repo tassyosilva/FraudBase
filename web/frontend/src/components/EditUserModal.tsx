@@ -15,6 +15,10 @@ import {
   AccordionDetails,
   Typography,
   Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { User } from '../types/User';
@@ -41,6 +45,37 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
   });
   const [passwordError, setPasswordError] = useState('');
 
+  // Estados brasileiros
+  const estadosBrasileiros = [
+    { codigo: 'AC', nome: 'Acre' },
+    { codigo: 'AL', nome: 'Alagoas' },
+    { codigo: 'AP', nome: 'Amapá' },
+    { codigo: 'AM', nome: 'Amazonas' },
+    { codigo: 'BA', nome: 'Bahia' },
+    { codigo: 'CE', nome: 'Ceará' },
+    { codigo: 'DF', nome: 'Distrito Federal' },
+    { codigo: 'ES', nome: 'Espírito Santo' },
+    { codigo: 'GO', nome: 'Goiás' },
+    { codigo: 'MA', nome: 'Maranhão' },
+    { codigo: 'MT', nome: 'Mato Grosso' },
+    { codigo: 'MS', nome: 'Mato Grosso do Sul' },
+    { codigo: 'MG', nome: 'Minas Gerais' },
+    { codigo: 'PA', nome: 'Pará' },
+    { codigo: 'PB', nome: 'Paraíba' },
+    { codigo: 'PR', nome: 'Paraná' },
+    { codigo: 'PE', nome: 'Pernambuco' },
+    { codigo: 'PI', nome: 'Piauí' },
+    { codigo: 'RJ', nome: 'Rio de Janeiro' },
+    { codigo: 'RN', nome: 'Rio Grande do Norte' },
+    { codigo: 'RS', nome: 'Rio Grande do Sul' },
+    { codigo: 'RO', nome: 'Rondônia' },
+    { codigo: 'RR', nome: 'Roraima' },
+    { codigo: 'SC', nome: 'Santa Catarina' },
+    { codigo: 'SP', nome: 'São Paulo' },
+    { codigo: 'SE', nome: 'Sergipe' },
+    { codigo: 'TO', nome: 'Tocantins' }
+  ];
+
   useEffect(() => {
     if (user) {
       setFormData({ ...user });
@@ -61,6 +96,17 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value
+    });
+
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData({
+      ...formData,
+      [name]: value
     });
 
     if (errors[name]) {
@@ -156,7 +202,8 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Editar Usuário</DialogTitle>
       <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
+        <Grid container spacing={3} sx={{ mt: 1 }}>
+          {/* Primeira linha */}
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
@@ -181,6 +228,8 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
               required
             />
           </Grid>
+
+          {/* Segunda linha */}
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
@@ -206,6 +255,8 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
               required
             />
           </Grid>
+
+          {/* Terceira linha */}
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
@@ -227,6 +278,38 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
               onChange={handleChange}
             />
           </Grid>
+
+          {/* Quarta linha */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Cidade"
+              name="cidade"
+              value={formData.cidade || ''}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth>
+              <InputLabel>Estado</InputLabel>
+              <Select
+                label="Estado"
+                value={formData.estado || ''}
+                onChange={(e) => handleSelectChange('estado', e.target.value as string)}
+              >
+                <MenuItem value="">
+                  <em>Selecione um estado</em>
+                </MenuItem>
+                {estadosBrasileiros.map((estado) => (
+                  <MenuItem key={estado.codigo} value={estado.codigo}>
+                    {estado.nome} ({estado.codigo})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Quinta linha */}
           <Grid item xs={12}>
             <TextField
               fullWidth
@@ -236,6 +319,8 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
               onChange={handleChange}
             />
           </Grid>
+
+          {/* Sexta linha */}
           <Grid item xs={12}>
             <FormControlLabel
               control={
@@ -268,7 +353,7 @@ const EditUserModal = ({ open, onClose, user, onSave }: EditUserModalProps) => {
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Grid container spacing={2}>
+                <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth

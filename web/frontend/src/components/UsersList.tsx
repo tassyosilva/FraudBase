@@ -18,7 +18,8 @@ import {
   alpha,
   styled,
   Tooltip,
-  TablePagination} from '@mui/material';
+  TablePagination
+} from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
@@ -27,6 +28,43 @@ import EditUserModal from './EditUserModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 import API_BASE_URL from '../config/api';
+
+// Estados brasileiros para conversão de código para nome completo
+const estadosBrasileiros = [
+  { codigo: 'AC', nome: 'Acre' },
+  { codigo: 'AL', nome: 'Alagoas' },
+  { codigo: 'AP', nome: 'Amapá' },
+  { codigo: 'AM', nome: 'Amazonas' },
+  { codigo: 'BA', nome: 'Bahia' },
+  { codigo: 'CE', nome: 'Ceará' },
+  { codigo: 'DF', nome: 'Distrito Federal' },
+  { codigo: 'ES', nome: 'Espírito Santo' },
+  { codigo: 'GO', nome: 'Goiás' },
+  { codigo: 'MA', nome: 'Maranhão' },
+  { codigo: 'MT', nome: 'Mato Grosso' },
+  { codigo: 'MS', nome: 'Mato Grosso do Sul' },
+  { codigo: 'MG', nome: 'Minas Gerais' },
+  { codigo: 'PA', nome: 'Pará' },
+  { codigo: 'PB', nome: 'Paraíba' },
+  { codigo: 'PR', nome: 'Paraná' },
+  { codigo: 'PE', nome: 'Pernambuco' },
+  { codigo: 'PI', nome: 'Piauí' },
+  { codigo: 'RJ', nome: 'Rio de Janeiro' },
+  { codigo: 'RN', nome: 'Rio Grande do Norte' },
+  { codigo: 'RS', nome: 'Rio Grande do Sul' },
+  { codigo: 'RO', nome: 'Rondônia' },
+  { codigo: 'RR', nome: 'Roraima' },
+  { codigo: 'SC', nome: 'Santa Catarina' },
+  { codigo: 'SP', nome: 'São Paulo' },
+  { codigo: 'SE', nome: 'Sergipe' },
+  { codigo: 'TO', nome: 'Tocantins' }
+];
+
+// Função para obter o nome completo do estado a partir do código
+const getEstadoNome = (codigo: string) => {
+  const estado = estadosBrasileiros.find(e => e.codigo === codigo);
+  return estado ? estado.nome : codigo;
+};
 
 // Cores consistentes
 const GOLD_COLOR = '#FFD700';
@@ -332,6 +370,8 @@ const UsersList = () => {
                   <TableCell>Nome</TableCell>
                   <TableCell>Login</TableCell>
                   <TableCell>Email</TableCell>
+                  <TableCell>Cidade</TableCell>
+                  <TableCell>Estado</TableCell>
                   <TableCell>Unidade Policial</TableCell>
                   <TableCell>Tipo</TableCell>
                   <TableCell align="center" width="140px">Ações</TableCell>
@@ -341,7 +381,7 @@ const UsersList = () => {
               <TableBody sx={{ backgroundColor: alpha('#000', 0.2) }}>
                 {visibleUsers.length === 0 ? (
                   <StyledTableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
                       <Typography variant="body1" sx={{ color: alpha('#FFF', 0.6), fontStyle: 'italic' }}>
                         Nenhum usuário encontrado
                       </Typography>
@@ -353,6 +393,8 @@ const UsersList = () => {
                       <TableCell sx={{ color: 'white', fontWeight: 500 }}>{user.nome}</TableCell>
                       <TableCell sx={{ color: '#CCC' }}>{user.login}</TableCell>
                       <TableCell sx={{ color: '#CCC' }}>{user.email}</TableCell>
+                      <TableCell sx={{ color: '#CCC' }}>{user.cidade || '-'}</TableCell>
+                      <TableCell sx={{ color: '#CCC' }}>{user.estado ? getEstadoNome(user.estado) : '-'}</TableCell>
                       <TableCell sx={{ color: '#CCC' }}>{user.unidade_policial}</TableCell>
                       <TableCell>
                         <Chip
