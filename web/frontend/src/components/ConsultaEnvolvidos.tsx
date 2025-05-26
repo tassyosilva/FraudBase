@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   Paper,
   Typography,
@@ -47,6 +47,23 @@ import API_BASE_URL from '../config/api';
 const GOLD_COLOR = '#FFD700';
 const DARK_BLUE = '#0A1929';
 const DARK_BG = '#121212';
+
+// Hook customizado para debounce
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 // Componentes estilizados
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -121,7 +138,7 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   },
 }));
 
-// Definição do tipo para os envolvidos retornados pela API
+// Definição das interfaces
 interface Envolvido {
   id: number;
   numero_do_bo: string;
@@ -168,6 +185,14 @@ interface Envolvido {
   numero_laudo_pericial?: string;
 }
 
+interface PaginatedResponse {
+  data: Envolvido[];
+  totalCount: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 const ConsultaEnvolvidos = () => {
 
   // Estados para os filtros de busca
@@ -175,11 +200,17 @@ const ConsultaEnvolvidos = () => {
     nome: '',
     cpf: '',
     bo: '',
-    telefone: '' // Modificado de pix para telefone
+    telefone: ''
   });
 
   // Estado para a lista de envolvidos
   const [envolvidos, setEnvolvidos] = useState<Envolvido[]>([]);
+
+  // Estados para paginação real no servidor
+  const [totalCount, setTotalCount] = useState(0);
+  const [, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
 
   // Estado para o envolvido selecionado para visualização detalhada
   const [selectedEnvolvido, setSelectedEnvolvido] = useState<Envolvido | null>(null);
@@ -194,42 +225,39 @@ const ConsultaEnvolvidos = () => {
     severity: 'info' as 'info' | 'success' | 'error'
   });
 
-  // Estados para paginação
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-
   // Estado para controle do modal de detalhes
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
-  // Função para atualizar os filtros
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  // Estado para controlar se a busca foi acionada pelo usuário
+  const [searchTriggered, setSearchTriggered] = useState(false);
 
-  // Função para buscar envolvidos
-  const handleSearch = async () => {
+  // Debounce para os filtros
+  const debouncedNome = useDebounce(filters.nome, 500);
+  const debouncedCpf = useDebounce(filters.cpf, 300);
+  const debouncedBo = useDebounce(filters.bo, 300);
+  const debouncedTelefone = useDebounce(filters.telefone, 500);
+
+  // Busca automática com debounce e paginação no servidor
+  const handleAutoSearch = useCallback(async (pageNum: number = 1, limitNum: number = rowsPerPage) => {
+    const hasValidFilters =
+      (debouncedNome && debouncedNome.length >= 3) ||
+      (debouncedCpf && debouncedCpf.length >= 11) ||
+      (debouncedBo && debouncedBo.length >= 5) ||
+      (debouncedTelefone && debouncedTelefone.length >= 10);
+
+    if (!hasValidFilters || !searchTriggered) return;
+
     setLoading(true);
     try {
-      // Sanitizando os filtros para evitar problemas com caracteres especiais
-      const sanitizedFilters = {
-        nome: filters.nome ? filters.nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
-        cpf: filters.cpf ? filters.cpf.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
-        bo: filters.bo ? filters.bo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '',
-        telefone: filters.telefone ? filters.telefone.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '' // Renomeado de pix para telefone
-      };
-
-      // Construir query string com os filtros sanitizados
       const queryParams = new URLSearchParams();
-      if (sanitizedFilters.nome) queryParams.append('nome', sanitizedFilters.nome);
-      if (sanitizedFilters.cpf) queryParams.append('cpf', sanitizedFilters.cpf);
-      if (sanitizedFilters.bo) queryParams.append('bo', sanitizedFilters.bo);
+      if (debouncedNome && debouncedNome.length >= 3) queryParams.append('nome', debouncedNome);
+      if (debouncedCpf && debouncedCpf.length >= 11) queryParams.append('cpf', debouncedCpf);
+      if (debouncedBo && debouncedBo.length >= 5) queryParams.append('bo', debouncedBo);
+      if (debouncedTelefone && debouncedTelefone.length >= 10) queryParams.append('telefone', debouncedTelefone);
 
-      // Alterando o nome do parâmetro de pix_utilizado para telefone
-      if (sanitizedFilters.telefone) queryParams.append('telefone', sanitizedFilters.telefone);
+      // Adicionar parâmetros de paginação
+      queryParams.append('page', pageNum.toString());
+      queryParams.append('limit', limitNum.toString());
 
       const response = await fetch(`${API_BASE_URL}/consulta-envolvidos?${queryParams.toString()}`, {
         headers: {
@@ -241,12 +269,14 @@ const ConsultaEnvolvidos = () => {
         throw new Error('Falha ao buscar envolvidos');
       }
 
-      const data = await response.json();
-      // Garantir que data é sempre um array
-      const resultArray = Array.isArray(data) ? data : [];
-      setEnvolvidos(resultArray);
+      const data: PaginatedResponse = await response.json();
 
-      if (resultArray.length === 0) {
+      setEnvolvidos(data.data || []);
+      setTotalCount(data.totalCount || 0);
+      setTotalPages(data.totalPages || 0);
+      setCurrentPage(data.page || 1);
+
+      if (data.data.length === 0) {
         setAlert({
           open: true,
           message: 'Nenhum resultado encontrado para os filtros informados.',
@@ -255,14 +285,15 @@ const ConsultaEnvolvidos = () => {
       } else {
         setAlert({
           open: true,
-          message: `${resultArray.length} resultado(s) encontrado(s).`,
+          message: `${data.totalCount} resultado(s) encontrado(s).`,
           severity: 'success'
         });
       }
     } catch (error) {
       console.error('Erro ao buscar envolvidos:', error);
-      // Importante: definir envolvidos como array vazio em caso de erro
       setEnvolvidos([]);
+      setTotalCount(0);
+      setTotalPages(0);
       setAlert({
         open: true,
         message: 'Erro ao buscar envolvidos. Tente novamente.',
@@ -271,6 +302,49 @@ const ConsultaEnvolvidos = () => {
     } finally {
       setLoading(false);
     }
+  }, [debouncedNome, debouncedCpf, debouncedBo, debouncedTelefone, searchTriggered, rowsPerPage]);
+
+  // Effect para busca automática
+  useEffect(() => {
+    if (searchTriggered) {
+      handleAutoSearch(1, rowsPerPage);
+    }
+  }, [handleAutoSearch, searchTriggered]);
+
+  // Função para atualizar os filtros com busca automática
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    // Marcar que uma busca foi iniciada pelo usuário e resetar para primeira página
+    if (value.length > 0) {
+      setSearchTriggered(true);
+      setCurrentPage(1);
+    }
+  };
+
+  // Função para buscar envolvidos (busca manual via botão)
+  const handleSearch = async () => {
+    setSearchTriggered(true);
+    setCurrentPage(1);
+    await handleAutoSearch(1, rowsPerPage);
+  };
+
+  // Novas funções para paginação no servidor
+  const handlePageChange = (_event: unknown, newPage: number) => {
+    const pageNum = newPage + 1; // MUI usa zero-based, backend usa 1-based
+    setCurrentPage(pageNum);
+    handleAutoSearch(pageNum, rowsPerPage);
+  };
+
+  const handleRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    handleAutoSearch(1, newRowsPerPage);
   };
 
   // Função para carregar detalhes de um envolvido
@@ -308,16 +382,6 @@ const ConsultaEnvolvidos = () => {
     const words = text.split(' ');
     if (words.length <= wordCount) return text;
     return words.slice(0, wordCount).join(' ') + '...';
-  };
-
-  // Funções para paginação
-  const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
   };
 
   // Função para fechar o alerta
@@ -560,9 +624,9 @@ const ConsultaEnvolvidos = () => {
           >
             <ContentPasteIcon sx={{ mr: 1, color: GOLD_COLOR }} />
             Resultados da Pesquisa
-            {envolvidos.length > 0 && (
+            {totalCount > 0 && (
               <Chip
-                label={`${envolvidos.length} registro(s)`}
+                label={`${totalCount} registro(s)`}
                 size="small"
                 sx={{
                   ml: 2,
@@ -614,72 +678,70 @@ const ConsultaEnvolvidos = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  (envolvidos || [])
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((envolvido) => (
-                      <StyledTableRow
-                        key={envolvido.id}
-                        hover
-                        onClick={() => handleLoadDetails(envolvido.id)}
-                      >
-                        <TableCell align="center">{envolvido.id}</TableCell>
-                        <TableCell sx={{ fontWeight: 'medium' }}>{envolvido.nomecompleto}</TableCell>
-                        <TableCell>{envolvido.cpf}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={envolvido.tipo_envolvido}
-                            size="small"
-                            sx={{
-                              backgroundColor: envolvido.tipo_envolvido.toLowerCase().includes('autor') ?
-                                alpha('#f44336', 0.2) : alpha('#2196f3', 0.2),
-                              color: envolvido.tipo_envolvido.toLowerCase().includes('autor') ?
-                                '#f44336' : '#2196f3',
-                              fontWeight: 'medium',
-                              fontSize: '0.75rem'
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>{envolvido.numero_do_bo}</TableCell>
-                        <TableCell>{formatDate(envolvido.data_fato)}</TableCell>
-                        <TableCell>
-                          <Tooltip title={envolvido.natureza || ''} arrow placement="top">
-                            <span>{truncateText(envolvido.natureza)}</span>
-                          </Tooltip>
-                        </TableCell>
-                        <TableCell align="center">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleLoadDetails(envolvido.id);
-                            }}
-                            sx={{
-                              color: GOLD_COLOR,
-                              '&:hover': {
-                                backgroundColor: alpha(GOLD_COLOR, 0.1)
-                              }
-                            }}
-                          >
-                            <VisibilityIcon fontSize="small" />
-                          </IconButton>
-                        </TableCell>
-                      </StyledTableRow>
-                    ))
+                  envolvidos.map((envolvido) => (
+                    <StyledTableRow
+                      key={envolvido.id}
+                      hover
+                      onClick={() => handleLoadDetails(envolvido.id)}
+                    >
+                      <TableCell align="center">{envolvido.id}</TableCell>
+                      <TableCell sx={{ fontWeight: 'medium' }}>{envolvido.nomecompleto}</TableCell>
+                      <TableCell>{envolvido.cpf}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={envolvido.tipo_envolvido}
+                          size="small"
+                          sx={{
+                            backgroundColor: envolvido.tipo_envolvido.toLowerCase().includes('autor') ?
+                              alpha('#f44336', 0.2) : alpha('#2196f3', 0.2),
+                            color: envolvido.tipo_envolvido.toLowerCase().includes('autor') ?
+                              '#f44336' : '#2196f3',
+                            fontWeight: 'medium',
+                            fontSize: '0.75rem'
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>{envolvido.numero_do_bo}</TableCell>
+                      <TableCell>{formatDate(envolvido.data_fato)}</TableCell>
+                      <TableCell>
+                        <Tooltip title={envolvido.natureza || ''} arrow placement="top">
+                          <span>{truncateText(envolvido.natureza)}</span>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleLoadDetails(envolvido.id);
+                          }}
+                          sx={{
+                            color: GOLD_COLOR,
+                            '&:hover': {
+                              backgroundColor: alpha(GOLD_COLOR, 0.1)
+                            }
+                          }}
+                        >
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </StyledTableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
           </TableContainer>
 
-          {/* Paginação */}
-          {envolvidos.length > 0 && (
+          {/* Paginação no Servidor */}
+          {totalCount > 0 && (
             <TablePagination
-              rowsPerPageOptions={[5, 10, 25, 50]}
+              rowsPerPageOptions={[10, 20, 50, 100]}
               component="div"
-              count={envolvidos ? envolvidos.length : 0}
+              count={totalCount}
               rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
+              page={currentPage - 1} // Converter de 1-based para zero-based
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
               sx={{
                 borderTop: `1px solid ${alpha(GOLD_COLOR, 0.2)}`,
                 '.MuiTablePagination-select, .MuiTablePagination-selectIcon': {
@@ -692,11 +754,15 @@ const ConsultaEnvolvidos = () => {
                   color: GOLD_COLOR,
                 }
               }}
+              labelDisplayedRows={({ from, to, count }) =>
+                `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
+              }
+              labelRowsPerPage="Linhas por página:"
             />
           )}
         </Box>
 
-        {/* Modal para exibir detalhes do envolvido - Mantido como estava */}
+        {/* Modal para exibir detalhes do envolvido */}
         <Dialog
           open={detailsModalOpen}
           onClose={handleCloseDetailsModal}
@@ -730,8 +796,7 @@ const ConsultaEnvolvidos = () => {
               sx={{
                 color: 'white',
                 '&:hover': { color: 'gold', backgroundColor: 'rgba(255, 215, 0, 0.1)' }
-              }}
-            >
+              }}>
               <CloseIcon />
             </IconButton>
           </DialogTitle>

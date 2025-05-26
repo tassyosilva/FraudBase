@@ -23,78 +23,44 @@ type ReincidenciaCPFStats struct {
 	Quantidade   int    `json:"quantidade"`
 }
 
-// GetReincidenciaPorCPF retorna estatísticas de reincidência de infratores por CPF
+// GetReincidenciaPorCPF retorna estatísticas de reincidência de infratores por CPF (versão otimizada)
 func (r *ReincidenciaRepository) GetReincidenciaPorCPF(page int, limit int) ([]ReincidenciaCPFStats, int, error) {
-	// Consulta paginada com OFFSET e LIMIT
+	// Query otimizada usando window functions e índices específicos
 	query := `
-        SELECT 
-            t.cpf, 
-            MAX(t.nomecompleto) AS nomecompleto, 
-            STRING_AGG(t.numero_do_bo, ', ') AS numeros_do_bo, 
-            contagem.quantidade
-        FROM 
-            tabela_estelionato t
-        JOIN (
-            SELECT 
-                cpf, 
-                COUNT(*) AS quantidade
-            FROM 
-                tabela_estelionato
-            WHERE 
-                tipo_envolvido = 'Suposto Autor/infrator'
-                AND cpf IS NOT NULL
-                AND cpf != ''
-            GROUP BY 
-                cpf
-            HAVING 
-                COUNT(*) > 1
-        ) contagem 
-        ON t.cpf = contagem.cpf
-        WHERE 
-            t.tipo_envolvido = 'Suposto Autor/infrator'
-            AND t.cpf IS NOT NULL
-            AND t.cpf != ''
-        GROUP BY 
-            t.cpf, contagem.quantidade
-        ORDER BY 
-            contagem.quantidade DESC
-        OFFSET $1
-        LIMIT $2;
-    `
+	WITH reincidencia_cpf AS (
+		SELECT 
+			cpf,
+			COUNT(*) as quantidade,
+			ARRAY_AGG(numero_do_bo ORDER BY numero_do_bo) as numeros_bo,
+			MAX(nomecompleto) as nome_completo
+		FROM tabela_estelionato
+		WHERE tipo_envolvido = 'Suposto Autor/infrator'
+		  AND cpf IS NOT NULL 
+		  AND cpf != ''
+		GROUP BY cpf
+		HAVING COUNT(*) > 1
+	)
+	SELECT 
+		cpf,
+		nome_completo,
+		ARRAY_TO_STRING(numeros_bo, ', ') as numeros_do_bo,
+		quantidade
+	FROM reincidencia_cpf
+	ORDER BY quantidade DESC, cpf
+	OFFSET $1 LIMIT $2;`
 
-	// Consulta para contar o total de registros
+	// Query de contagem otimizada
 	countQuery := `
-        SELECT 
-            COUNT(*)
-        FROM (
-            SELECT 
-                t.cpf
-            FROM 
-                tabela_estelionato t
-            JOIN (
-                SELECT 
-                    cpf, 
-                    COUNT(*) AS quantidade
-                FROM 
-                    tabela_estelionato
-                WHERE 
-                    tipo_envolvido = 'Suposto Autor/infrator'
-                    AND cpf IS NOT NULL
-                    AND cpf != ''
-                GROUP BY 
-                    cpf
-                HAVING 
-                    COUNT(*) > 1
-            ) contagem 
-            ON t.cpf = contagem.cpf
-            WHERE 
-                t.tipo_envolvido = 'Suposto Autor/infrator'
-                AND t.cpf IS NOT NULL
-                AND t.cpf != ''
-            GROUP BY 
-                t.cpf, contagem.quantidade
-        ) AS total_count;
-    `
+	SELECT COUNT(*)
+	FROM (
+		SELECT cpf
+		FROM tabela_estelionato
+		WHERE tipo_envolvido = 'Suposto Autor/infrator'
+		  AND cpf IS NOT NULL 
+		  AND cpf != ''
+		GROUP BY cpf
+		HAVING COUNT(*) > 1
+	) as contagem;`
 
 	offset := (page - 1) * limit
 
