@@ -50,21 +50,22 @@ func (r *RelatorioRepository) InserirDadosRelatorio(dados []DadosRelatorio) (int
 	if len(dados) == 0 {
 		return 0, 0, nil
 	}
+
 	log.Printf("Iniciando inserção de %d registros com verificação de duplicatas...", len(dados))
-	
+
 	// Verificar e remover duplicatas
 	dadosUnicos, duplicatasRemovidas, err := r.VerificarDuplicatas(dados)
 	if err != nil {
 		return 0, 0, fmt.Errorf("erro ao verificar duplicatas: %v", err)
 	}
-	
+
 	if len(dadosUnicos) == 0 {
 		log.Println("Todos os registros são duplicatas, nenhum registro será inserido")
 		return 0, duplicatasRemovidas, nil
 	}
-	
+
 	log.Printf("Inserindo %d registros únicos (%d duplicatas removidas)...", len(dadosUnicos), duplicatasRemovidas)
-	
+
 	// Inserir apenas os dados únicos
 	registrosInseridos, err := r.inserirDadosNormal(dadosUnicos)
 	if err != nil {
@@ -85,15 +86,13 @@ func (r *RelatorioRepository) InserirDadosRelatorio(dados []DadosRelatorio) (int
 // Função para inserção em lotes otimizada
 func (r *RelatorioRepository) inserirDadosNormal(dados []DadosRelatorio) (int, error) {
 	// Query preparada para inserção em lote
-	query := `
-	INSERT INTO tabela_estelionato (
+	query := `INSERT INTO tabela_estelionato (
 		numero_do_bo, delegacia_responsavel, situacao, natureza,
 		data_fato, cep_fato, latitude_fato, longitude_fato, logradouro_fato,
 		numerocasa_fato, bairro_fato, municipio_fato, pais_fato,
 		tipo_envolvido, nomecompleto, cpf, nomedamae, nascimento,
 		nacionalidade, naturalidade, uf_envolvido, sexo_envolvido,
-		telefone_envolvido, relato_historico
-	) VALUES `
+		telefone_envolvido, relato_historico) VALUES `
 
 	batchSize := 500 // Lotes para evitar timeout
 	registrosInseridos := 0
@@ -103,6 +102,7 @@ func (r *RelatorioRepository) inserirDadosNormal(dados []DadosRelatorio) (int, e
 		if end > len(dados) {
 			end = len(dados)
 		}
+
 		batch := dados[i:end]
 
 		// Construir placeholders
@@ -127,7 +127,6 @@ func (r *RelatorioRepository) inserirDadosNormal(dados []DadosRelatorio) (int, e
 
 		// Executar inserção do lote
 		batchQuery := query + strings.Join(valueStrings, ",")
-
 		_, err := r.DB.Exec(batchQuery, valueArgs...) // MUDANÇA: usar r.DB
 		if err != nil {
 			return registrosInseridos, fmt.Errorf("erro ao inserir lote: %v", err)
@@ -150,33 +149,34 @@ func (r *RelatorioRepository) VerificarDuplicatas(dados []DadosRelatorio) ([]Dad
 	if len(dados) == 0 {
 		return dados, 0, nil
 	}
+
 	log.Printf("Verificando duplicatas para %d registros...", len(dados))
-	
+
 	// Criar um mapa para armazenar hashes dos registros do banco
 	existingHashes := make(map[string]bool)
 	duplicatesCount := 0
-	
+
 	// Buscar registros existentes em lotes para não sobrecarregar a memória
 	batchSize := 1000
 	var dadosUnicos []DadosRelatorio
-	
+
 	for i := 0; i < len(dados); i += batchSize {
 		end := i + batchSize
 		if end > len(dados) {
 			end = len(dados)
 		}
-		
+
 		batch := dados[i:end]
 		uniqueBatch, duplicatesInBatch := r.filtrarDuplicatasBatch(batch, existingHashes)
 		dadosUnicos = append(dadosUnicos, uniqueBatch...)
 		duplicatesCount += duplicatesInBatch
-		
+
 		// Log de progresso
 		if i%5000 == 0 {
 			log.Printf("Verificados %d registros, %d duplicatas encontradas...", i, duplicatesCount)
 		}
 	}
-	
+
 	log.Printf("Verificação concluída: %d registros únicos, %d duplicatas removidas", len(dadosUnicos), duplicatesCount)
 	return dadosUnicos, duplicatesCount, nil
 }
@@ -185,19 +185,19 @@ func (r *RelatorioRepository) VerificarDuplicatas(dados []DadosRelatorio) ([]Dad
 func (r *RelatorioRepository) filtrarDuplicatasBatch(batch []DadosRelatorio, existingHashes map[string]bool) ([]DadosRelatorio, int) {
 	var uniqueData []DadosRelatorio
 	duplicatesCount := 0
-	
+
 	// Criar query para verificar se os registros já existem
 	// Usando uma abordagem eficiente com hash dos campos principais
 	for _, registro := range batch {
 		// Criar hash único do registro baseado em campos chave
 		hashKey := r.criarHashRegistro(registro)
-		
+
 		// Se já processamos este hash, é duplicata
 		if existingHashes[hashKey] {
 			duplicatesCount++
 			continue
 		}
-		
+
 		// Verificar se existe no banco usando campos únicos mais prováveis
 		exists, err := r.verificarExistenciaRegistro(registro)
 		if err != nil {
@@ -207,7 +207,7 @@ func (r *RelatorioRepository) filtrarDuplicatasBatch(batch []DadosRelatorio, exi
 			existingHashes[hashKey] = true
 			continue
 		}
-		
+
 		if exists {
 			duplicatesCount++
 			existingHashes[hashKey] = true
@@ -216,15 +216,77 @@ func (r *RelatorioRepository) filtrarDuplicatasBatch(batch []DadosRelatorio, exi
 			existingHashes[hashKey] = true
 		}
 	}
-	
+
 	return uniqueData, duplicatesCount
+}
+
+// GetEstadoUsuario obtém o estado do usuário pelo ID
+func (r *RelatorioRepository) GetEstadoUsuario(userID int) (string, error) {
+	var estado sql.NullString
+	query := `SELECT estado FROM usuarios WHERE id = $1`
+	
+	err := r.DB.QueryRow(query, userID).Scan(&estado)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("usuário não encontrado")
+		}
+		return "", fmt.Errorf("erro ao buscar estado do usuário: %v", err)
+	}
+	
+	if !estado.Valid {
+		return "", nil // Estado não informado
+	}
+	
+	return estado.String, nil
+}
+
+// getEstadosBrasileiros retorna lista de todos os estados brasileiros
+func (r *RelatorioRepository) getEstadosBrasileiros() []string {
+	return []string{
+		"AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", 
+		"MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", 
+		"RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
+	}
+}
+
+// normalizarNumeroBO remove qualquer sufixo de estado do número do BO
+func (r *RelatorioRepository) normalizarNumeroBO(numeroBO string) string {
+	estados := r.getEstadosBrasileiros()
+	
+	// Verificar se termina com algum sufixo de estado e remover
+	for _, estado := range estados {
+		sufixo := "/" + estado
+		if strings.HasSuffix(numeroBO, sufixo) {
+			return strings.TrimSuffix(numeroBO, sufixo)
+		}
+	}
+	
+	return numeroBO // Retorna original se não tiver sufixo
+}
+
+// gerarVariacoesNumeroBO gera todas as variações possíveis de um número de BO
+func (r *RelatorioRepository) gerarVariacoesNumeroBO(numeroBO string) []string {
+	estados := r.getEstadosBrasileiros()
+	numeroNormalizado := r.normalizarNumeroBO(numeroBO)
+	
+	variacoes := []string{numeroNormalizado} // Versão sem sufixo
+	
+	// Adicionar versões com cada estado
+	for _, estado := range estados {
+		variacoes = append(variacoes, numeroNormalizado+"/"+estado)
+	}
+	
+	return variacoes
 }
 
 // criarHashRegistro cria um hash único baseado nos campos principais
 func (r *RelatorioRepository) criarHashRegistro(registro DadosRelatorio) string {
 	// Usar campos que têm maior probabilidade de serem únicos
+	// Para o número do BO, usar sempre a versão normalizada (sem sufixo de estado)
+	numeroBO := r.normalizarNumeroBO(registro.NumeroBo)
+	
 	return fmt.Sprintf("%s|%s|%s|%s|%s|%s", 
-		registro.NumeroBo,
+		numeroBO,               // BO normalizado (sem sufixo de estado)
 		registro.TipoEnvolvido, 
 		registro.NomeCompleto,
 		registro.Cpf,
@@ -234,25 +296,45 @@ func (r *RelatorioRepository) criarHashRegistro(registro DadosRelatorio) string 
 
 // verificarExistenciaRegistro verifica se um registro específico já existe
 func (r *RelatorioRepository) verificarExistenciaRegistro(registro DadosRelatorio) (bool, error) {
-	// Query otimizada para verificar existência usando campos únicos
-	query := `
+	// Gerar todas as variações possíveis do número do BO
+	variacoes := r.gerarVariacoesNumeroBO(registro.NumeroBo)
+	
+	// Criar placeholders para a query IN
+	placeholders := make([]string, len(variacoes))
+	args := make([]interface{}, len(variacoes)+5) // +5 para os outros campos
+	
+	for i := range variacoes {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		args[i] = variacoes[i]
+	}
+	
+	// Adicionar outros campos após as variações
+	args[len(variacoes)] = registro.TipoEnvolvido
+	args[len(variacoes)+1] = registro.NomeCompleto
+	args[len(variacoes)+2] = registro.Cpf
+	args[len(variacoes)+3] = registro.TelefoneEnvolvido
+	args[len(variacoes)+4] = registro.DataFato
+	
+	// Query otimizada para verificar existência considerando todas as variações
+	query := fmt.Sprintf(`
 		SELECT 1 FROM tabela_estelionato 
-		WHERE numero_do_bo = $1 
-		  AND COALESCE(tipo_envolvido, '') = $2
-		  AND COALESCE(nomecompleto, '') = $3
-		  AND COALESCE(cpf, '') = $4
-		  AND COALESCE(telefone_envolvido, '') = $5
-		  AND COALESCE(data_fato, '') = $6
-		LIMIT 1`
+		WHERE numero_do_bo IN (%s)
+		  AND COALESCE(tipo_envolvido, '') = $%d
+		  AND COALESCE(nomecompleto, '') = $%d
+		  AND COALESCE(cpf, '') = $%d
+		  AND COALESCE(telefone_envolvido, '') = $%d
+		  AND COALESCE(data_fato, '') = $%d
+		LIMIT 1`,
+		strings.Join(placeholders, ","),
+		len(variacoes)+1,
+		len(variacoes)+2,
+		len(variacoes)+3,
+		len(variacoes)+4,
+		len(variacoes)+5,
+	)
 	
 	var exists int
-	err := r.DB.QueryRow(query, 
-		registro.NumeroBo,
-		registro.TipoEnvolvido,
-		registro.NomeCompleto, 
-		registro.Cpf,
-		registro.TelefoneEnvolvido,
-		registro.DataFato).Scan(&exists)
+	err := r.DB.QueryRow(query, args...).Scan(&exists)
 	
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -267,49 +349,48 @@ func (r *RelatorioRepository) verificarExistenciaRegistro(registro DadosRelatori
 // Método alternativo mais rigoroso (verifica TODOS os campos)
 func (r *RelatorioRepository) verificarExistenciaCompleta(registro DadosRelatorio) (bool, error) {
 	// Query que verifica TODOS os campos (como a limpeza de duplicatas faz)
-	query := `
-		SELECT 1 FROM tabela_estelionato 
-		WHERE numero_do_bo = $1 
-		  AND COALESCE(delegacia_responsavel, '') = $2
-		  AND COALESCE(situacao, '') = $3
-		  AND COALESCE(natureza, '') = $4
-		  AND COALESCE(data_fato, '') = $5
-		  AND COALESCE(cep_fato, '') = $6
-		  AND COALESCE(latitude_fato, '') = $7
-		  AND COALESCE(longitude_fato, '') = $8
-		  AND COALESCE(logradouro_fato, '') = $9
-		  AND COALESCE(numerocasa_fato, '') = $10
-		  AND COALESCE(bairro_fato, '') = $11
-		  AND COALESCE(municipio_fato, '') = $12
-		  AND COALESCE(pais_fato, '') = $13
-		  AND COALESCE(tipo_envolvido, '') = $14
-		  AND COALESCE(nomecompleto, '') = $15
-		  AND COALESCE(cpf, '') = $16
-		  AND COALESCE(nomedamae, '') = $17
-		  AND COALESCE(nascimento, '') = $18
-		  AND COALESCE(nacionalidade, '') = $19
-		  AND COALESCE(naturalidade, '') = $20
-		  AND COALESCE(uf_envolvido, '') = $21
-		  AND COALESCE(sexo_envolvido, '') = $22
-		  AND COALESCE(telefone_envolvido, '') = $23
-		  AND COALESCE(relato_historico, '') = $24
-		LIMIT 1`
-	
+	query := `SELECT 1 FROM tabela_estelionato
+	WHERE numero_do_bo = $1
+	  AND COALESCE(delegacia_responsavel, '') = $2
+	  AND COALESCE(situacao, '') = $3
+	  AND COALESCE(natureza, '') = $4
+	  AND COALESCE(data_fato, '') = $5
+	  AND COALESCE(cep_fato, '') = $6
+	  AND COALESCE(latitude_fato, '') = $7
+	  AND COALESCE(longitude_fato, '') = $8
+	  AND COALESCE(logradouro_fato, '') = $9
+	  AND COALESCE(numerocasa_fato, '') = $10
+	  AND COALESCE(bairro_fato, '') = $11
+	  AND COALESCE(municipio_fato, '') = $12
+	  AND COALESCE(pais_fato, '') = $13
+	  AND COALESCE(tipo_envolvido, '') = $14
+	  AND COALESCE(nomecompleto, '') = $15
+	  AND COALESCE(cpf, '') = $16
+	  AND COALESCE(nomedamae, '') = $17
+	  AND COALESCE(nascimento, '') = $18
+	  AND COALESCE(nacionalidade, '') = $19
+	  AND COALESCE(naturalidade, '') = $20
+	  AND COALESCE(uf_envolvido, '') = $21
+	  AND COALESCE(sexo_envolvido, '') = $22
+	  AND COALESCE(telefone_envolvido, '') = $23
+	  AND COALESCE(relato_historico, '') = $24
+	LIMIT 1`
+
 	var exists int
-	err := r.DB.QueryRow(query, 
+	err := r.DB.QueryRow(query,
 		registro.NumeroBo, registro.DelegaciaResponsavel, registro.Situacao, registro.Natureza,
-		registro.DataFato, registro.CepFato, registro.LatitudeFato, registro.LongitudeFato, 
-		registro.LogradouroFato, registro.NumeroCasaFato, registro.BairroFato, registro.MunicipioFato, 
-		registro.PaisFato, registro.TipoEnvolvido, registro.NomeCompleto, registro.Cpf, 
-		registro.NomeDaMae, registro.Nascimento, registro.Nacionalidade, registro.Naturalidade, 
+		registro.DataFato, registro.CepFato, registro.LatitudeFato, registro.LongitudeFato,
+		registro.LogradouroFato, registro.NumeroCasaFato, registro.BairroFato, registro.MunicipioFato,
+		registro.PaisFato, registro.TipoEnvolvido, registro.NomeCompleto, registro.Cpf,
+		registro.NomeDaMae, registro.Nascimento, registro.Nacionalidade, registro.Naturalidade,
 		registro.UfEnvolvido, registro.SexoEnvolvido, registro.TelefoneEnvolvido, registro.RelatoHistorico).Scan(&exists)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
 		return false, err
 	}
-	
+
 	return true, nil
 }

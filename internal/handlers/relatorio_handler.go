@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"fraudbase/internal/repository"
 	"fraudbase/internal/database"
+	"fraudbase/internal/auth"
+	"fraudbase/internal/middleware"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -24,6 +26,23 @@ func NewRelatorioHandler(repo *repository.RelatorioRepository) *RelatorioHandler
 
 // UploadRelatorio processa o upload e importação do relatório
 func (h *RelatorioHandler) UploadRelatorio(w http.ResponseWriter, r *http.Request) {
+	// OBTER INFORMAÇÕES DO USUÁRIO AUTENTICADO ATRAVÉS DO JWT
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	if !ok {
+		respondWithError(w, http.StatusUnauthorized, "Usuário não autenticado")
+		return
+	}
+
+	// BUSCAR ESTADO DO USUÁRIO NO BANCO DE DADOS
+	estadoUsuario, err := h.repo.GetEstadoUsuario(claims.UserID)
+	if err != nil {
+		log.Printf("Erro ao obter estado do usuário: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Erro ao obter informações do usuário: "+err.Error())
+		return
+	}
+
+	log.Printf("Usuario ID: %d, Estado: %s", claims.UserID, estadoUsuario)
+
 	// Limitar tamanho do upload para 10MB
 	r.ParseMultipartForm(10 << 20)
 
@@ -63,14 +82,19 @@ func (h *RelatorioHandler) UploadRelatorio(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	// Processar os dados e relacioná-los
-	dadosProcessados, err := processarDadosRelatorio(xlsx)
+	// PROCESSAR OS DADOS PASSANDO O ESTADO DO USUÁRIO OBTIDO DO BANCO
+	dadosProcessados, err := processarDadosRelatorio(xlsx, estadoUsuario)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Erro ao processar dados: "+err.Error())
 		return
 	}
 
-	// Inserir dados no banco de dados (LINHA ALTERADA)
+	// Log para debug
+	if len(dadosProcessados) > 0 {
+		log.Printf("Primeiro registro processado - BO: %s", dadosProcessados[0].NumeroBo)
+	}
+
+	// Inserir dados no banco de dados
 	registrosInseridos, duplicatasEvitadas, err := h.repo.InserirDadosRelatorio(dadosProcessados)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Erro ao inserir dados no banco: "+err.Error())
@@ -84,13 +108,13 @@ func (h *RelatorioHandler) UploadRelatorio(w http.ResponseWriter, r *http.Reques
 		log.Println("Views materializadas atualizadas após upload")
 	}()
 
-	// Responder com sucesso (RESPOSTA ALTERADA)
+	// Responder com sucesso
 	response := map[string]interface{}{
 		"success":             true,
-		"message":             "Arquivo processado com sucesso",
+		"message":             fmt.Sprintf("Arquivo processado com sucesso (Estado: %s)", estadoUsuario),
 		"registrosInseridos":  registrosInseridos,
-		"duplicatasEvitadas":  duplicatasEvitadas, // NOVO CAMPO
-		"totalProcessados":    len(dadosProcessados), // NOVO CAMPO
+		"duplicatasEvitadas":  duplicatasEvitadas,
+		"totalProcessados":    len(dadosProcessados),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -105,7 +129,7 @@ func (h *RelatorioHandler) RefreshViews(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Atualizar views materializadas
-	err := database.RefreshMaterializedViews(h.repo.DB) // MUDANÇA: h.repo.DB
+	err := database.RefreshMaterializedViews(h.repo.DB)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Erro ao atualizar views: "+err.Error())
 		return
@@ -121,9 +145,11 @@ func (h *RelatorioHandler) RefreshViews(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(response)
 }
 
-// Função completa para processar todas as tabelas do relatório
-func processarDadosRelatorio(xlsx *excelize.File) ([]repository.DadosRelatorio, error) {
+// Função completa para processar todas as tabelas do relatório - VERSÃO UNIVERSAL
+func processarDadosRelatorio(xlsx *excelize.File, estadoUsuario string) ([]repository.DadosRelatorio, error) {
 	var resultado []repository.DadosRelatorio
+
+	log.Printf("Processando dados com estado do usuário: '%s'", estadoUsuario)
 
 	// Mapas para armazenar dados temporariamente por ID
 	dadosRegistro := make(map[string]map[string]string)
@@ -173,8 +199,51 @@ func processarDadosRelatorio(xlsx *excelize.File) ([]repository.DadosRelatorio, 
 			continue
 		}
 
+		// APLICAR SUFIXO DO ESTADO PARA QUALQUER ESTADO BRASILEIRO
+		numeroBO := getValueSafely(row, idxNumero)
+		log.Printf("BO original: '%s', Estado usuário: '%s'", numeroBO, estadoUsuario)
+
+		if estadoUsuario != "" && numeroBO != "" {
+			// Lista de todos os estados brasileiros
+			estadosValidos := []string{
+				"AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", 
+				"MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", 
+				"RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
+			}
+			
+			// Verificar se o estado do usuário é válido
+			estadoValido := false
+			for _, estado := range estadosValidos {
+				if estado == estadoUsuario {
+					estadoValido = true
+					break
+				}
+			}
+			
+			log.Printf("Estado válido: %v", estadoValido)
+			
+			// Se o estado é válido e o BO ainda não tem sufixo de estado
+			if estadoValido {
+				// Verificar se já não termina com algum sufixo de estado
+				jaTemSufixo := false
+				for _, estado := range estadosValidos {
+					if strings.HasSuffix(numeroBO, "/"+estado) {
+						jaTemSufixo = true
+						log.Printf("BO já tem sufixo: %s", estado)
+						break
+					}
+				}
+				
+				// Adicionar sufixo apenas se não tiver nenhum
+				if !jaTemSufixo {
+					numeroBO = numeroBO + "/" + estadoUsuario
+					log.Printf("BO modificado: '%s'", numeroBO)
+				}
+			}
+		}
+
 		dadosRegistro[id] = map[string]string{
-			"Número":              getValueSafely(row, idxNumero),
+			"Número":              numeroBO, // NÚMERO JÁ COM SUFIXO SE NECESSÁRIO
 			"Unidade de Apuração": getValueSafely(row, idxUnidade),
 			"Situação":            getValueSafely(row, idxSituacao),
 			"Naturezas":           getValueSafely(row, idxNaturezas),
@@ -424,6 +493,11 @@ func processarDadosRelatorio(xlsx *excelize.File) ([]repository.DadosRelatorio, 
 				resultado = append(resultado, dados)
 			}
 		}
+	}
+
+	log.Printf("Processamento concluído. Total de registros: %d", len(resultado))
+	if len(resultado) > 0 {
+		log.Printf("Primeiro BO processado: %s", resultado[0].NumeroBo)
 	}
 
 	return resultado, nil
