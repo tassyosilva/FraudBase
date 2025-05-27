@@ -264,14 +264,14 @@ func (r *RelatorioRepository) normalizarNumeroBO(numeroBO string) string {
 	return numeroBO // Retorna original se não tiver sufixo
 }
 
-// gerarVariacoesNumeroBO gera todas as variações possíveis de um número de BO
+// gerarVariacoesNumeroBO gera todas as variações possíveis de um número de BO (apenas com sufixos)
 func (r *RelatorioRepository) gerarVariacoesNumeroBO(numeroBO string) []string {
 	estados := r.getEstadosBrasileiros()
 	numeroNormalizado := r.normalizarNumeroBO(numeroBO)
 	
-	variacoes := []string{numeroNormalizado} // Versão sem sufixo
+	var variacoes []string
 	
-	// Adicionar versões com cada estado
+	// Adicionar APENAS versões com cada estado (27 variações)
 	for _, estado := range estados {
 		variacoes = append(variacoes, numeroNormalizado+"/"+estado)
 	}
@@ -282,11 +282,11 @@ func (r *RelatorioRepository) gerarVariacoesNumeroBO(numeroBO string) []string {
 // criarHashRegistro cria um hash único baseado nos campos principais
 func (r *RelatorioRepository) criarHashRegistro(registro DadosRelatorio) string {
 	// Usar campos que têm maior probabilidade de serem únicos
-	// Para o número do BO, usar sempre a versão normalizada (sem sufixo de estado)
-	numeroBO := r.normalizarNumeroBO(registro.NumeroBo)
+	// Manter o BO como está (com sufixo se tiver) para consistência
+	numeroBO := registro.NumeroBo
 	
 	return fmt.Sprintf("%s|%s|%s|%s|%s|%s", 
-		numeroBO,               // BO normalizado (sem sufixo de estado)
+		numeroBO,               // BO original (com sufixo se aplicável)
 		registro.TipoEnvolvido, 
 		registro.NomeCompleto,
 		registro.Cpf,
