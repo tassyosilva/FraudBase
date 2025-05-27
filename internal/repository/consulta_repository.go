@@ -25,7 +25,8 @@ func NewConsultaRepository(db *sql.DB) *ConsultaRepository {
 // FindEnvolvidos busca envolvidos com os filtros especificados (versão otimizada)
 func (r *ConsultaRepository) FindEnvolvidos(nome, cpf, bo, telefone string) ([]models.Envolvido, error) {
 	// Query base otimizada com LIMIT para evitar resultados excessivos
-	query := `SELECT id, numero_do_bo, tipo_envolvido, nomecompleto, cpf,
+	query := `
+	SELECT id, numero_do_bo, tipo_envolvido, nomecompleto, cpf,
 		COALESCE(nomedamae, '') as nomedamae,
 		COALESCE(nascimento, '') as nascimento,
 		COALESCE(nacionalidade, '') as nacionalidade,
@@ -92,7 +93,8 @@ func (r *ConsultaRepository) FindEnvolvidos(nome, cpf, bo, telefone string) ([]m
 	var envolvidos []models.Envolvido
 	for rows.Next() {
 		var e models.Envolvido
-		if err := rows.Scan(&e.ID, &e.NumeroBO, &e.TipoEnvolvido, &e.NomeCompleto, &e.CPF, &e.NomeMae,
+		if err := rows.Scan(
+			&e.ID, &e.NumeroBO, &e.TipoEnvolvido, &e.NomeCompleto, &e.CPF, &e.NomeMae,
 			&e.Nascimento, &e.Nacionalidade, &e.Naturalidade, &e.UFEnvolvido, &e.SexoEnvolvido,
 			&e.TelefoneEnvolvido, &e.DataFato, &e.DelegaciaResponsavel, &e.Situacao, &e.Natureza,
 		); err != nil {
@@ -135,28 +137,35 @@ func (r *ConsultaRepository) FindEnvolvidosPaginated(nome, cpf, bo, telefone str
 	var conditions []string
 	paramIndex := 1
 
-	// Construir condições (mesmo código anterior)
+	// BUSCA POR NOME - usando ILIKE para busca parcial case-insensitive
 	if nome != "" {
-		conditions = append(conditions, fmt.Sprintf("nomecompleto %% $%d", paramIndex))
-		params = append(params, nome)
+		conditions = append(conditions, fmt.Sprintf("UPPER(nomecompleto) LIKE UPPER($%d)", paramIndex))
+		params = append(params, "%"+nome+"%") // Busca parcial
 		paramIndex++
 	}
 	
+	// BUSCA POR CPF - busca exata apenas nos números
 	if cpf != "" {
-		conditions = append(conditions, fmt.Sprintf("cpf = $%d", paramIndex))
-		params = append(params, cpf)
+		// Remove caracteres não numéricos do CPF para busca
+		cleanCPF := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(cpf, ".", ""), "-", ""), " ", "")
+		conditions = append(conditions, fmt.Sprintf("REGEXP_REPLACE(cpf, '[^0-9]', '', 'g') = $%d", paramIndex))
+		params = append(params, cleanCPF)
 		paramIndex++
 	}
 	
+	// BUSCA POR BO - usando ILIKE para busca parcial
 	if bo != "" {
-		conditions = append(conditions, fmt.Sprintf("numero_do_bo = $%d", paramIndex))
-		params = append(params, bo)
+		conditions = append(conditions, fmt.Sprintf("numero_do_bo ILIKE $%d", paramIndex))
+		params = append(params, "%"+bo+"%") // Busca parcial
 		paramIndex++
 	}
 	
+	// BUSCA POR TELEFONE - busca parcial nos números do telefone
 	if telefone != "" {
-		conditions = append(conditions, fmt.Sprintf("telefone_envolvido = $%d", paramIndex))
-		params = append(params, telefone)
+		// Remove caracteres não numéricos para busca mais flexível
+		cleanTelefone := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(telefone, "+", ""), " ", ""), "(", ""), ")", "")
+		conditions = append(conditions, fmt.Sprintf("REGEXP_REPLACE(telefone_envolvido, '[^0-9]', '', 'g') LIKE $%d", paramIndex))
+		params = append(params, "%"+cleanTelefone+"%") // Busca parcial
 		paramIndex++
 	}
 
@@ -213,7 +222,8 @@ func (r *ConsultaRepository) FindEnvolvidosPaginated(nome, cpf, bo, telefone str
 
 // FindEnvolvidoById busca um envolvido específico pelo ID
 func (r *ConsultaRepository) FindEnvolvidoById(id int) (models.Envolvido, error) {
-	query := `SELECT id, numero_do_bo, tipo_envolvido, nomecompleto, cpf,
+	query := `
+	SELECT id, numero_do_bo, tipo_envolvido, nomecompleto, cpf,
 		COALESCE(nomedamae, '') as nomedamae,
 		COALESCE(nascimento, '') as nascimento,
 		COALESCE(nacionalidade, '') as nacionalidade,

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Paper,
   Typography,
@@ -48,21 +48,24 @@ const GOLD_COLOR = '#FFD700';
 const DARK_BLUE = '#0A1929';
 const DARK_BG = '#121212';
 
-// Hook customizado para debounce
-const useDebounce = (value: string, delay: number) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+// Função de formatação de CPF
+const formatCPF = (value: string): string => {
+  // Remove todos os caracteres não numéricos
+  const numbers = value.replace(/\D/g, '');
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
+  // Limita a 11 dígitos
+  const limitedNumbers = numbers.slice(0, 11);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
+  // Aplica a máscara
+  if (limitedNumbers.length <= 3) {
+    return limitedNumbers;
+  } else if (limitedNumbers.length <= 6) {
+    return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3)}`;
+  } else if (limitedNumbers.length <= 9) {
+    return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3, 6)}.${limitedNumbers.slice(6)}`;
+  } else {
+    return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3, 6)}.${limitedNumbers.slice(6, 9)}-${limitedNumbers.slice(9)}`;
+  }
 };
 
 // Componentes estilizados
@@ -222,38 +225,55 @@ const ConsultaEnvolvidos = () => {
   const [alert, setAlert] = useState({
     open: false,
     message: '',
-    severity: 'info' as 'info' | 'success' | 'error'
+    severity: 'info' as 'info' | 'success' | 'error' | 'warning'
   });
 
   // Estado para controle do modal de detalhes
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
   // Estado para controlar se a busca foi acionada pelo usuário
-  const [searchTriggered, setSearchTriggered] = useState(false);
+  // const [searchTriggered, setSearchTriggered] = useState(false); // REMOVIDO - não é mais necessário
 
-  // Debounce para os filtros
-  const debouncedNome = useDebounce(filters.nome, 500);
-  const debouncedCpf = useDebounce(filters.cpf, 300);
-  const debouncedBo = useDebounce(filters.bo, 300);
-  const debouncedTelefone = useDebounce(filters.telefone, 500);
+  // Função para normalizar texto (remover acentos)
+  const normalizeText = (text: string): string => {
+    return text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  };
 
-  // Busca automática com debounce e paginação no servidor
+  // Busca manual com paginação no servidor
   const handleAutoSearch = useCallback(async (pageNum: number = 1, limitNum: number = rowsPerPage) => {
     const hasValidFilters =
-      (debouncedNome && debouncedNome.length >= 3) ||
-      (debouncedCpf && debouncedCpf.length >= 11) ||
-      (debouncedBo && debouncedBo.length >= 5) ||
-      (debouncedTelefone && debouncedTelefone.length >= 10);
+      (filters.nome && filters.nome.length >= 3) ||
+      (filters.cpf && filters.cpf.replace(/\D/g, '').length >= 11) ||
+      (filters.bo && filters.bo.length >= 3) ||
+      (filters.telefone && filters.telefone.length >= 3);
 
-    if (!hasValidFilters || !searchTriggered) return;
+    if (!hasValidFilters) return;
 
     setLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      if (debouncedNome && debouncedNome.length >= 3) queryParams.append('nome', debouncedNome);
-      if (debouncedCpf && debouncedCpf.length >= 11) queryParams.append('cpf', debouncedCpf);
-      if (debouncedBo && debouncedBo.length >= 5) queryParams.append('bo', debouncedBo);
-      if (debouncedTelefone && debouncedTelefone.length >= 10) queryParams.append('telefone', debouncedTelefone);
+
+      if (filters.nome && filters.nome.length >= 3) {
+        // Normalizar o nome para remover acentos antes de enviar
+        queryParams.append('nome', normalizeText(filters.nome));
+      }
+
+      if (filters.cpf && filters.cpf.replace(/\D/g, '').length >= 11) {
+        // Enviar apenas os números do CPF para o backend
+        queryParams.append('cpf', filters.cpf.replace(/\D/g, ''));
+      }
+
+      if (filters.bo && filters.bo.length >= 3) {
+        queryParams.append('bo', filters.bo);
+      }
+
+      if (filters.telefone && filters.telefone.length >= 3) {
+        queryParams.append('telefone', filters.telefone);
+      }
 
       // Adicionar parâmetros de paginação
       queryParams.append('page', pageNum.toString());
@@ -302,33 +322,44 @@ const ConsultaEnvolvidos = () => {
     } finally {
       setLoading(false);
     }
-  }, [debouncedNome, debouncedCpf, debouncedBo, debouncedTelefone, searchTriggered, rowsPerPage]);
+  }, [filters.nome, filters.cpf, filters.bo, filters.telefone, rowsPerPage]);
 
-  // Effect para busca automática
-  useEffect(() => {
-    if (searchTriggered) {
-      handleAutoSearch(1, rowsPerPage);
-    }
-  }, [handleAutoSearch, searchTriggered]);
-
-  // Função para atualizar os filtros com busca automática
+  // Função para atualizar os filtros SEM busca automática
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
 
-    // Marcar que uma busca foi iniciada pelo usuário e resetar para primeira página
-    if (value.length > 0) {
-      setSearchTriggered(true);
-      setCurrentPage(1);
+    if (name === 'cpf') {
+      // Aplicar formatação de CPF
+      const formattedCPF = formatCPF(value);
+      setFilters(prev => ({
+        ...prev,
+        [name]: formattedCPF
+      }));
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
   };
 
   // Função para buscar envolvidos (busca manual via botão)
   const handleSearch = async () => {
-    setSearchTriggered(true);
+    const hasValidFilters =
+      (filters.nome && filters.nome.length >= 3) ||
+      (filters.cpf && filters.cpf.replace(/\D/g, '').length >= 11) ||
+      (filters.bo && filters.bo.length >= 3) ||
+      (filters.telefone && filters.telefone.length >= 3);
+
+    if (!hasValidFilters) {
+      setAlert({
+        open: true,
+        message: 'Por favor, preencha pelo menos um campo com dados suficientes para busca.',
+        severity: 'warning'
+      });
+      return;
+    }
+
     setCurrentPage(1);
     await handleAutoSearch(1, rowsPerPage);
   };
@@ -506,7 +537,7 @@ const ConsultaEnvolvidos = () => {
                 value={filters.nome}
                 onChange={handleFilterChange}
                 variant="outlined"
-                placeholder="Digite o nome para pesquisa"
+                placeholder="Digite parte do nome (mín. 3 caracteres)"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -524,7 +555,10 @@ const ConsultaEnvolvidos = () => {
                 value={filters.cpf}
                 onChange={handleFilterChange}
                 variant="outlined"
-                placeholder="Digite o CPF para pesquisa"
+                placeholder="000.000.000-00"
+                inputProps={{
+                  maxLength: 14 // Limitar ao tamanho da máscara
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -542,7 +576,7 @@ const ConsultaEnvolvidos = () => {
                 value={filters.bo}
                 onChange={handleFilterChange}
                 variant="outlined"
-                placeholder="Digite o número do BO"
+                placeholder="Digite parte do número do BO"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -560,7 +594,7 @@ const ConsultaEnvolvidos = () => {
                 value={filters.telefone}
                 onChange={handleFilterChange}
                 variant="outlined"
-                placeholder="Digite o nº do telefone/celular"
+                placeholder="Digite parte do número (mín. 3 dígitos)"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -1141,6 +1175,9 @@ const ConsultaEnvolvidos = () => {
               },
               '&.MuiAlert-standardInfo': {
                 backgroundColor: '#0288d1',
+              },
+              '&.MuiAlert-standardWarning': {
+                backgroundColor: '#ed6c02',
               },
             }}
           >
