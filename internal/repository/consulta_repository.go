@@ -139,7 +139,7 @@ func (r *ConsultaRepository) FindEnvolvidosPaginated(nome, cpf, bo, telefone str
 
 	// BUSCA POR NOME - usando ILIKE para busca parcial case-insensitive
 	if nome != "" {
-		conditions = append(conditions, fmt.Sprintf("UPPER(nomecompleto) LIKE UPPER($%d)", paramIndex))
+		conditions = append(conditions, fmt.Sprintf("UPPER(unaccent(nomecompleto)) LIKE UPPER(unaccent($%d))", paramIndex))
 		params = append(params, "%"+nome+"%") // Busca parcial
 		paramIndex++
 	}

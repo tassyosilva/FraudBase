@@ -56,7 +56,8 @@ func RunMigrations(db *sql.DB) error {
 
 // createUsersTable cria a tabela de usuários
 func createUsersTable(db *sql.DB) error {
-	query := `CREATE TABLE IF NOT EXISTS usuarios (
+	query := `
+	CREATE TABLE IF NOT EXISTS usuarios (
 		id SERIAL PRIMARY KEY,
 		login VARCHAR(100) UNIQUE NOT NULL,
 		nome VARCHAR(200) NOT NULL,
@@ -105,7 +106,8 @@ func UpdateUsersTableStructure(db *sql.DB) error {
 
 // createEstelianatoTable cria a tabela principal de estelionato com tamanhos corrigidos
 func createEstelianatoTable(db *sql.DB) error {
-	query := `CREATE TABLE IF NOT EXISTS tabela_estelionato (
+	query := `
+	CREATE TABLE IF NOT EXISTS tabela_estelionato (
 		id SERIAL PRIMARY KEY,
 		numero_do_bo VARCHAR(50),
 		tipo_envolvido VARCHAR(100),
@@ -223,8 +225,9 @@ func insertDefaultAdmin(db *sql.DB) error {
 	}
 
 	// Inserir usuário administrador
-	query := `INSERT INTO usuarios (login, nome, cpf, matricula, telefone, unidade_policial, email, senha, is_admin)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	query := `
+	INSERT INTO usuarios (login, nome, cpf, matricula, telefone, unidade_policial, email, senha, is_admin)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	_, err = db.Exec(query,
 		"admin",
@@ -253,6 +256,9 @@ func AddIndexes(db *sql.DB) error {
 	log.Println("Criando índices otimizados para performance...")
 
 	indexes := []string{
+		// ADICIONAR ESTA LINHA NO INÍCIO:
+		"CREATE EXTENSION IF NOT EXISTS unaccent;",
+
 		// Índices básicos existentes
 		"CREATE INDEX IF NOT EXISTS idx_tabela_estelionato_cpf ON tabela_estelionato(cpf);",
 		"CREATE INDEX IF NOT EXISTS idx_tabela_estelionato_telefone ON tabela_estelionato(telefone_envolvido);",
@@ -286,7 +292,7 @@ func AddIndexes(db *sql.DB) error {
 
 		// ÍNDICE ESPECÍFICO PARA VERIFICAÇÃO DE DUPLICATAS
 		"CREATE INDEX IF NOT EXISTS idx_verificacao_duplicatas ON tabela_estelionato(numero_do_bo, tipo_envolvido, nomecompleto, cpf, telefone_envolvido, data_fato);",
-		
+
 		// Índice adicional para performance na verificação completa
 		"CREATE INDEX IF NOT EXISTS idx_duplicatas_hash ON tabela_estelionato(numero_do_bo, delegacia_responsavel, situacao) WHERE numero_do_bo IS NOT NULL;",
 	}
@@ -311,30 +317,30 @@ func CreateMaterializedViews(db *sql.DB) error {
 	views := []string{
 		// View para estatísticas de vítimas por sexo
 		`CREATE MATERIALIZED VIEW IF NOT EXISTS mv_vitimas_por_sexo AS
-		SELECT 
+		SELECT
 			sexo_envolvido,
 			COUNT(*) as quantidade
 		FROM tabela_estelionato
 		WHERE tipo_envolvido IN ('Comunicante, Vítima', 'Vítima')
-		  AND sexo_envolvido IS NOT NULL
+			AND sexo_envolvido IS NOT NULL
 		GROUP BY sexo_envolvido;`,
 
 		// View para estatísticas de infratores por delegacia
 		`CREATE MATERIALIZED VIEW IF NOT EXISTS mv_infratores_por_delegacia AS
-		SELECT 
+		SELECT
 			delegacia_responsavel,
 			COUNT(*) as quantidade
 		FROM tabela_estelionato
 		WHERE tipo_envolvido = 'Suposto Autor/infrator'
-		  AND delegacia_responsavel IS NOT NULL
-		  AND delegacia_responsavel != ''
+			AND delegacia_responsavel IS NOT NULL
+			AND delegacia_responsavel != ''
 		GROUP BY delegacia_responsavel
 		ORDER BY quantidade DESC
 		LIMIT 10;`,
 
 		// View para contagens gerais
 		`CREATE MATERIALIZED VIEW IF NOT EXISTS mv_contagens_gerais AS
-		SELECT 
+		SELECT
 			COUNT(DISTINCT numero_do_bo) as total_bos,
 			COUNT(CASE WHEN tipo_envolvido = 'Suposto Autor/infrator' THEN 1 END) as total_infratores,
 			COUNT(CASE WHEN tipo_envolvido IN ('Comunicante, Vítima', 'Vítima') THEN 1 END) as total_vitimas

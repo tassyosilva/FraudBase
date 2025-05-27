@@ -231,18 +231,6 @@ const ConsultaEnvolvidos = () => {
   // Estado para controle do modal de detalhes
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
-  // Estado para controlar se a busca foi acionada pelo usuário
-  // const [searchTriggered, setSearchTriggered] = useState(false); // REMOVIDO - não é mais necessário
-
-  // Função para normalizar texto (remover acentos)
-  const normalizeText = (text: string): string => {
-    return text
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
-  };
-
   // Busca manual com paginação no servidor
   const handleAutoSearch = useCallback(async (pageNum: number = 1, limitNum: number = rowsPerPage) => {
     const hasValidFilters =
@@ -259,7 +247,7 @@ const ConsultaEnvolvidos = () => {
 
       if (filters.nome && filters.nome.length >= 3) {
         // Normalizar o nome para remover acentos antes de enviar
-        queryParams.append('nome', normalizeText(filters.nome));
+        queryParams.append('nome', filters.nome);
       }
 
       if (filters.cpf && filters.cpf.replace(/\D/g, '').length >= 11) {
