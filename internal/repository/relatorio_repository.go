@@ -240,53 +240,11 @@ func (r *RelatorioRepository) GetEstadoUsuario(userID int) (string, error) {
 	return estado.String, nil
 }
 
-// getEstadosBrasileiros retorna lista de todos os estados brasileiros
-func (r *RelatorioRepository) getEstadosBrasileiros() []string {
-	return []string{
-		"AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", 
-		"MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", 
-		"RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
-	}
-}
-
-// normalizarNumeroBO remove qualquer sufixo de estado do número do BO
-func (r *RelatorioRepository) normalizarNumeroBO(numeroBO string) string {
-	estados := r.getEstadosBrasileiros()
-	
-	// Verificar se termina com algum sufixo de estado e remover
-	for _, estado := range estados {
-		sufixo := "/" + estado
-		if strings.HasSuffix(numeroBO, sufixo) {
-			return strings.TrimSuffix(numeroBO, sufixo)
-		}
-	}
-	
-	return numeroBO // Retorna original se não tiver sufixo
-}
-
-// gerarVariacoesNumeroBO gera todas as variações possíveis de um número de BO (apenas com sufixos)
-func (r *RelatorioRepository) gerarVariacoesNumeroBO(numeroBO string) []string {
-	estados := r.getEstadosBrasileiros()
-	numeroNormalizado := r.normalizarNumeroBO(numeroBO)
-	
-	var variacoes []string
-	
-	// Adicionar APENAS versões com cada estado (27 variações)
-	for _, estado := range estados {
-		variacoes = append(variacoes, numeroNormalizado+"/"+estado)
-	}
-	
-	return variacoes
-}
-
 // criarHashRegistro cria um hash único baseado nos campos principais
 func (r *RelatorioRepository) criarHashRegistro(registro DadosRelatorio) string {
-	// Usar campos que têm maior probabilidade de serem únicos
-	// Manter o BO como está (com sufixo se tiver) para consistência
-	numeroBO := registro.NumeroBo
-	
+	// Usar o número do BO como está (já com sufixo)
 	return fmt.Sprintf("%s|%s|%s|%s|%s|%s", 
-		numeroBO,               // BO original (com sufixo se aplicável)
+		registro.NumeroBo,      // Já com sufixo do estado
 		registro.TipoEnvolvido, 
 		registro.NomeCompleto,
 		registro.Cpf,
@@ -294,56 +252,37 @@ func (r *RelatorioRepository) criarHashRegistro(registro DadosRelatorio) string 
 		registro.DataFato)
 }
 
-// verificarExistenciaRegistro verifica se um registro específico já existe
+// verificarExistenciaRegistro verifica se um registro específico já existe (MÉTODO OTIMIZADO)
 func (r *RelatorioRepository) verificarExistenciaRegistro(registro DadosRelatorio) (bool, error) {
-	// Gerar todas as variações possíveis do número do BO
-	variacoes := r.gerarVariacoesNumeroBO(registro.NumeroBo)
-	
-	// Criar placeholders para a query IN
-	placeholders := make([]string, len(variacoes))
-	args := make([]interface{}, len(variacoes)+5) // +5 para os outros campos
-	
-	for i := range variacoes {
-		placeholders[i] = fmt.Sprintf("$%d", i+1)
-		args[i] = variacoes[i]
-	}
-	
-	// Adicionar outros campos após as variações
-	args[len(variacoes)] = registro.TipoEnvolvido
-	args[len(variacoes)+1] = registro.NomeCompleto
-	args[len(variacoes)+2] = registro.Cpf
-	args[len(variacoes)+3] = registro.TelefoneEnvolvido
-	args[len(variacoes)+4] = registro.DataFato
-	
-	// Query otimizada para verificar existência considerando todas as variações
-	query := fmt.Sprintf(`
+	// Query OTIMIZADA - verificação direta sem variações
+	query := `
 		SELECT 1 FROM tabela_estelionato 
-		WHERE numero_do_bo IN (%s)
-		  AND COALESCE(tipo_envolvido, '') = $%d
-		  AND COALESCE(nomecompleto, '') = $%d
-		  AND COALESCE(cpf, '') = $%d
-		  AND COALESCE(telefone_envolvido, '') = $%d
-		  AND COALESCE(data_fato, '') = $%d
-		LIMIT 1`,
-		strings.Join(placeholders, ","),
-		len(variacoes)+1,
-		len(variacoes)+2,
-		len(variacoes)+3,
-		len(variacoes)+4,
-		len(variacoes)+5,
-	)
+		WHERE numero_do_bo = $1
+		  AND COALESCE(tipo_envolvido, '') = $2
+		  AND COALESCE(nomecompleto, '') = $3
+		  AND COALESCE(cpf, '') = $4
+		  AND COALESCE(telefone_envolvido, '') = $5
+		  AND COALESCE(data_fato, '') = $6
+		LIMIT 1`
 	
 	var exists int
-	err := r.DB.QueryRow(query, args...).Scan(&exists)
+	err := r.DB.QueryRow(query, 
+		registro.NumeroBo,  // Já vem com sufixo do estado
+		registro.TipoEnvolvido,
+		registro.NomeCompleto,
+		registro.Cpf,
+		registro.TelefoneEnvolvido,
+		registro.DataFato,
+	).Scan(&exists)
 	
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false, nil // Não existe
+			return false, nil
 		}
-		return false, err // Erro na consulta
+		return false, err
 	}
 	
-	return true, nil // Existe
+	return true, nil
 }
 
 // Método alternativo mais rigoroso (verifica TODOS os campos)
